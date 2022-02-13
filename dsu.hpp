@@ -1,9 +1,9 @@
-class dsu {
+class DSU {
 public:
   vector<int> p;
   int n;
  
-  dsu(int _n) : n(_n) {
+  DSU(int _n) : n(_n) {
     p.resize(n);
     iota(p.begin(), p.end(), 0);
   }
