@@ -49,8 +49,3 @@ public:
     return res;
   }    
 };
-
-作者：能鸽善武
-链接：https://www.acwing.com/solution/content/92324/
-来源：AcWing
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
