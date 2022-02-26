@@ -4,11 +4,8 @@ class SparseTable {
   int n;
   vector<vector<T>> mat;
   F func;
- 
-  SparseTable() {}
- 
-  void init(const vector<T>& a, const F& f) {
-    func = f;
+
+  SparseTable(const vector<T>& a, const F& f) : func(f) {
     n = static_cast<int>(a.size());
     int max_log = 32 - __builtin_clz(n);
     mat.resize(max_log);
@@ -20,14 +17,10 @@ class SparseTable {
       }
     }
   }
- 
+
   T get(int from, int to) const {
     assert(0 <= from && from <= to && to <= n - 1);
     int lg = 32 - __builtin_clz(to - from + 1) - 1;
     return func(mat[lg][from], mat[lg][to - (1 << lg) + 1]);
   }
 };
- 
-function<int(int, int)> GetMax;
- 
-SparseTable<int> saux;
