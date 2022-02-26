@@ -5,7 +5,9 @@ class digraph : public graph<T> {
   using graph<T>::g;
   using graph<T>::n;
   using graph<T>::ignore;
+  
   digraph(int _n) : graph<T>(_n) {}
+
   int add(int from, int to, T cost = 1) {
     assert(0 <= from && from < n && 0 <= to && to < n);
     int id = (int)edges.size();

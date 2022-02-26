@@ -5,6 +5,7 @@ class dfs_undigraph : public undigraph<T> {
   using undigraph<T>::g;
   using undigraph<T>::n;
   using undigraph<T>::ignore;
+
   vector<int> pv;
   vector<int> pe;
   vector<int> order;
@@ -17,7 +18,9 @@ class dfs_undigraph : public undigraph<T> {
   vector<T> dist;
   vector<int> was;
   int attempt;
+
   dfs_undigraph(int _n) : undigraph<T>(_n) {}
+
   void init() {
     pv = vector<int>(n, -1);
     pe = vector<int>(n, -1);
