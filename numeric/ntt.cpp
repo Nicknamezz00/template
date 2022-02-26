@@ -2,14 +2,13 @@ template <typename T>
 class NTT {
  public:
   using Type = typename decay<decltype(T::value)>::type;
- 
   static Type md;
   static Modular<T> root;
   static int base;
   static int max_base;
   static vector<Modular<T>> roots;
   static vector<int> rev;
- 
+
   static void clear() {
     root = 0;
     base = 0;
@@ -17,7 +16,6 @@ class NTT {
     roots.clear();
     rev.clear();
   }
- 
   static void init() {
     md = T::value;
     assert(md >= 3 && md % 2 == 1);
@@ -37,7 +35,6 @@ class NTT {
     rev = {0, 1};
     roots = {0, 1};
   }
- 
   static void ensure_base(int nbase) {
     if (md != T::value) {
       clear();
@@ -63,9 +60,8 @@ class NTT {
       base++;
     }
   }
- 
-  static void fft(vector<Modular<T>> &a) {
-    int n = (int) a.size();
+  static void fft(vector<Modular<T>>& a) {
+    int n = (int)a.size();
     assert((n & (n - 1)) == 0);
     int zeros = __builtin_ctz(n);
     ensure_base(zeros);
@@ -86,13 +82,13 @@ class NTT {
       }
     }
   }
- 
-  static vector<Modular<T>> multiply(vector<Modular<T>> a, vector<Modular<T>> b) {
+  static vector<Modular<T>> multiply(vector<Modular<T>> a,
+                                     vector<Modular<T>> b) {
     if (a.empty() || b.empty()) {
       return {};
     }
     int eq = (a == b);
-    int need = (int) a.size() + (int) b.size() - 1;
+    int need = (int)a.size() + (int)b.size() - 1;
     int nbase = 0;
     while ((1 << nbase) < need) nbase++;
     ensure_base(nbase);
@@ -100,7 +96,10 @@ class NTT {
     a.resize(sz);
     b.resize(sz);
     fft(a);
-    if (eq) b = a; else fft(b);
+    if (eq)
+      b = a;
+    else
+      fft(b);
     Modular<T> inv_sz = 1 / static_cast<Modular<T>>(sz);
     for (int i = 0; i < sz; i++) {
       a[i] *= b[i] * inv_sz;
@@ -111,28 +110,28 @@ class NTT {
     return a;
   }
 };
- 
+
 template <typename T> typename NTT<T>::Type NTT<T>::md;
 template <typename T> Modular<T> NTT<T>::root;
 template <typename T> int NTT<T>::base;
 template <typename T> int NTT<T>::max_base;
 template <typename T> vector<Modular<T>> NTT<T>::roots;
 template <typename T> vector<int> NTT<T>::rev;
- 
+
 template <typename T>
 vector<Modular<T>> inverse(const vector<Modular<T>>& a) {
   assert(!a.empty());
-  int n = (int) a.size();
+  int n = (int)a.size();
   vector<Modular<T>> b = {1 / a[0]};
-  while ((int) b.size() < n) {
+  while ((int)b.size() < n) {
     vector<Modular<T>> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
     x.resize(b.size() << 1);
     b.resize(b.size() << 1);
     vector<Modular<T>> c = b;
     NTT<T>::fft(c);
     NTT<T>::fft(x);
-    Modular<T> inv = 1 / static_cast<Modular<T>>((int) x.size());
-    for (int i = 0; i < (int) x.size(); i++) {
+    Modular<T> inv = 1 / static_cast<Modular<T>>((int)x.size());
+    for (int i = 0; i < (int)x.size(); i++) {
       x[i] *= c[i] * inv;
     }
     reverse(x.begin() + 1, x.end());
@@ -140,23 +139,23 @@ vector<Modular<T>> inverse(const vector<Modular<T>>& a) {
     rotate(x.begin(), x.begin() + (x.size() >> 1), x.end());
     fill(x.begin() + (x.size() >> 1), x.end(), 0);
     NTT<T>::fft(x);
-    for (int i = 0; i < (int) x.size(); i++) {
+    for (int i = 0; i < (int)x.size(); i++) {
       x[i] *= c[i] * inv;
     }
     reverse(x.begin() + 1, x.end());
     NTT<T>::fft(x);
-    for (int i = 0; i < ((int) x.size() >> 1); i++) {
-      b[i + ((int) x.size() >> 1)] = -x[i];
+    for (int i = 0; i < ((int)x.size() >> 1); i++) {
+      b[i + ((int)x.size() >> 1)] = -x[i];
     }
   }
   b.resize(n);
   return b;
 }
- 
+
 template <typename T>
 vector<Modular<T>> inverse_old(vector<Modular<T>> a) {
   assert(!a.empty());
-  int n = (int) a.size();
+  int n = (int)a.size();
   if (n == 1) {
     return {1 / a[0]};
   }
@@ -182,16 +181,17 @@ vector<Modular<T>> inverse_old(vector<Modular<T>> a) {
   a.resize(n);
   return a;
 }
- 
+
 template <typename T>
-vector<Modular<T>> operator*(const vector<Modular<T>>& a, const vector<Modular<T>>& b) {
+vector<Modular<T>> operator*(const vector<Modular<T>>& a,
+                             const vector<Modular<T>>& b) {
   if (a.empty() || b.empty()) {
     return {};
   }
   if (min(a.size(), b.size()) < 150) {
     vector<Modular<T>> c(a.size() + b.size() - 1, 0);
-    for (int i = 0; i < (int) a.size(); i++) {
-      for (int j = 0; j < (int) b.size(); j++) {
+    for (int i = 0; i < (int)a.size(); i++) {
+      for (int j = 0; j < (int)b.size(); j++) {
         c[i + j] += a[i] * b[j];
       }
     }
@@ -199,150 +199,9 @@ vector<Modular<T>> operator*(const vector<Modular<T>>& a, const vector<Modular<T
   }
   return NTT<T>::multiply(a, b);
 }
- 
+
 template <typename T>
-vector<Modular<T>>& operator*=(vector<Modular<T>>& a, const vector<Modular<T>>& b) {
+vector<Modular<T>>& operator*=(vector<Modular<T>>& a,
+                               const vector<Modular<T>>& b) {
   return a = a * b;
-}
- 
-template <typename T>
-vector<T>& operator+=(vector<T>& a, const vector<T>& b) {
-  if (a.size() < b.size()) {
-    a.resize(b.size());
-  }
-  for (int i = 0; i < (int) b.size(); i++) {
-    a[i] += b[i];
-  }
-  return a;
-}
- 
-template <typename T>
-vector<T> operator+(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c += b;
-}
- 
-template <typename T>
-vector<T>& operator-=(vector<T>& a, const vector<T>& b) {
-  if (a.size() < b.size()) {
-    a.resize(b.size());
-  }
-  for (int i = 0; i < (int) b.size(); i++) {
-    a[i] -= b[i];
-  }
-  return a;
-}
- 
-template <typename T>
-vector<T> operator-(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c -= b;
-}
- 
-template <typename T>
-vector<T> operator-(const vector<T>& a) {
-  vector<T> c = a;
-  for (int i = 0; i < (int) c.size(); i++) {
-    c[i] = -c[i];
-  }
-  return c;
-}
- 
-template <typename T>
-vector<T> operator*(const vector<T>& a, const vector<T>& b) {
-  if (a.empty() || b.empty()) {
-    return {};
-  }
-  vector<T> c(a.size() + b.size() - 1, 0);
-  for (int i = 0; i < (int) a.size(); i++) {
-    for (int j = 0; j < (int) b.size(); j++) {
-      c[i + j] += a[i] * b[j];
-    }
-  }
-  return c;
-}
- 
-template <typename T>
-vector<T>& operator*=(vector<T>& a, const vector<T>& b) {
-  return a = a * b;
-}
- 
-template <typename T>
-vector<T> inverse(const vector<T>& a) {
-  assert(!a.empty());
-  int n = (int) a.size();
-  vector<T> b = {1 / a[0]};
-  while ((int) b.size() < n) {
-    vector<T> a_cut(a.begin(), a.begin() + min(a.size(), b.size() << 1));
-    vector<T> x = b * b * a_cut;
-    b.resize(b.size() << 1);
-    for (int i = (int) b.size() >> 1; i < (int) min(x.size(), b.size()); i++) {
-      b[i] = -x[i];
-    }
-  }
-  b.resize(n);
-  return b;
-}
- 
-template <typename T>
-vector<T>& operator/=(vector<T>& a, const vector<T>& b) {
-  int n = (int) a.size();
-  int m = (int) b.size();
-  if (n < m) {
-    a.clear();
-  } else {
-    vector<T> d = b;
-    reverse(a.begin(), a.end());
-    reverse(d.begin(), d.end());
-    d.resize(n - m + 1);
-    a *= inverse(d);
-    a.erase(a.begin() + n - m + 1, a.end());
-    reverse(a.begin(), a.end());
-  }
-  return a;
-}
- 
-template <typename T>
-vector<T> operator/(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c /= b;
-}
- 
-template <typename T>
-vector<T>& operator%=(vector<T>& a, const vector<T>& b) {
-  int n = (int) a.size();
-  int m = (int) b.size();
-  if (n >= m) {
-    vector<T> c = (a / b) * b;
-    a.resize(m - 1);
-    for (int i = 0; i < m - 1; i++) {
-      a[i] -= c[i];
-    }
-  }
-  return a;
-}
- 
-template <typename T>
-vector<T> operator%(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c %= b;
-}
- 
-template <typename T, typename U>
-vector<T> power(const vector<T>& a, const U& b, const vector<T>& c) {
-  assert(b >= 0);
-  vector<U> binary;
-  U bb = b;
-  while (bb > 0) {
-    binary.push_back(bb & 1);
-    bb >>= 1;
-  }
-  vector<T> res = vector<T>{1} % c;
-  for (int j = (int) binary.size() - 1; j >= 0; j--) {
-    res = res * res % c;
-    if (binary[j] == 1) {
-      res = res * a % c;
-    }
-  }
-  return res;
 }

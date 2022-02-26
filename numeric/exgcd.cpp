@@ -1,4 +1,4 @@
-template<typename T>
+template <typename T>
 T extgcd(T a, T b, T &x, T &y) {
   if (a == 0) {
     x = 0;
@@ -10,7 +10,8 @@ T extgcd(T a, T b, T &x, T &y) {
   x -= p * y;
   return g;
 }
-template<typename T>
+
+template <typename T>
 bool diophantine(T a, T b, T c, T &x, T &y, T &g) {
   if (a == 0 && b == 0) {
     if (c == 0) {
@@ -45,13 +46,14 @@ bool diophantine(T a, T b, T c, T &x, T &y, T &g) {
   c -= dx * a;
   T dy = c / b;
   c -= dy * b;
-  x = dx + (T) ((__int128) x * (c / g) % b);
-  y = dy + (T) ((__int128) y * (c / g) % a);
+  x = dx + (T)((__int128)x * (c / g) % b);
+  y = dy + (T)((__int128)y * (c / g) % a);
   g = abs(g);
   return true;
-  // |x|, |y| <= max(|a|, |b|, |c|) [tested]
+  // |x|, |y| <= max(|a|, |b|, |c|)?
 }
-bool crt(long long k1, long long m1, long long k2, long long m2, long long &k, long long &m) {
+bool crt(long long k1, long long m1, long long k2, long long m2, long long &k,
+         long long &m) {
   k1 %= m1;
   if (k1 < 0) k1 += m1;
   k2 %= m2;
