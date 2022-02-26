@@ -1,8 +1,8 @@
 template <typename T, typename C>
 class mcmf {
- public:
+  public:
   static constexpr T eps = (T) 1e-9;
- 
+
   struct edge {
     int from;
     int to;
@@ -10,8 +10,8 @@ class mcmf {
     T f;
     C cost;
   };
- 
-  vector<vector<int>> g;
+
+  vector< vector<int> > g;
   vector<edge> edges;
   vector<C> d;
   vector<int> q;
@@ -21,7 +21,7 @@ class mcmf {
   int st, fin;
   T flow;
   C cost;
- 
+
   mcmf(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
     assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
     g.resize(n);
@@ -31,7 +31,7 @@ class mcmf {
     flow = 0;
     cost = 0;
   }
- 
+
   void clear_flow() {
     for (const edge &e : edges) {
       e.f = 0;
@@ -46,7 +46,7 @@ class mcmf {
     g[to].push_back((int) edges.size());
     edges.push_back({to, from, backward_cap, 0, -cost});
   }
- 
+
   bool expath() {
     fill(d.begin(), d.end(), numeric_limits<C>::max());
     q.clear();
@@ -96,8 +96,8 @@ class mcmf {
   }
    
   pair<T, C> max_flow_min_cost() {
-    while (expath()) {}
-    return {flow, cost};
+    while (expath()) {
+    }
+    return make_pair(flow, cost);
   }
 };
-

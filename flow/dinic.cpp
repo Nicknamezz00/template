@@ -1,61 +1,18 @@
 template <typename T>
-class flow_graph {
- public:
-  static constexpr T eps = (T) 1e-9;
- 
-  struct edge {
-    int from;
-    int to;
-    T c;
-    T f;
-  };
- 
-  vector<vector<int>> g;
-  vector<edge> edges;
-  int n;
-  int st;
-  int fin;
-  T flow;
- 
-  flow_graph(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
-    assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
-    g.resize(n);
-    flow = 0;
-  }
- 
-  void clear_flow() {
-    for (const edge &e : edges) {
-      e.f = 0;
-    }
-    flow = 0;
-  }
-   
-  int add(int from, int to, T forward_cap, T backward_cap) {
-    assert(0 <= from && from < n && 0 <= to && to < n);
-    int id = (int) edges.size();
-    g[from].push_back(id);
-    edges.push_back({from, to, forward_cap, 0});
-    g[to].push_back(id + 1);
-    edges.push_back({to, from, backward_cap, 0});
-    return id;
-  }
-};
- 
-template <typename T>
 class dinic {
- public:
+public:
   flow_graph<T> &g;
- 
+
   vector<int> ptr;
   vector<int> d;
   vector<int> q;
- 
+
   dinic(flow_graph<T> &_g) : g(_g) {
     ptr.resize(g.n);
     d.resize(g.n);
     q.resize(g.n);
   }
- 
+
   bool expath() {
     fill(d.begin(), d.end(), -1);
     q[0] = g.fin;
@@ -98,7 +55,7 @@ class dinic {
     }
     return 0;
   }
- 
+
   T max_flow() {
     while (expath()) {
       for (int i = 0; i < g.n; i++) {
@@ -119,7 +76,7 @@ class dinic {
     }
     return g.flow;
   }
- 
+
   vector<bool> min_cut() {
     max_flow();
     vector<bool> ret(g.n);
@@ -129,4 +86,3 @@ class dinic {
     return ret;
   }
 };
-
