@@ -8,7 +8,7 @@ enum GAUSS_MODE {
   DEGREE, ABS
 };
 
-int solution = 0;
+// int solution = 0;
 
 template <typename T>
 void GaussianElimination(vector<vector<T>>& a, int limit, GAUSS_MODE mode = DEGREE) {
