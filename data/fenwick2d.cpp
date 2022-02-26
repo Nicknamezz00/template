@@ -1,5 +1,6 @@
-template <typename T> class fenwick {
-public:
+template <typename T>
+class fenwick {
+ public:
   vector<vector<T>> fenw;
   int n, m;
 
@@ -26,7 +27,7 @@ public:
     T res{};
     for (int i = x; i >= 0; i = (i & (i + 1)) - 1) {
       for (int j = y; j >= 0; j = (j & (j + 1)) - 1) {
-        res +=  fenw[i][j];
+        res += fenw[i][j];
       }
     }
     return res;
@@ -47,5 +48,5 @@ public:
       res += get(x1 - 1, y1 - 1);
     }
     return res;
-  }    
+  }
 };

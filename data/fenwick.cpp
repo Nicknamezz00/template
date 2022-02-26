@@ -1,5 +1,6 @@
-template <typename T> class fenwick {
-public:
+template <typename T>
+class fenwick {
+ public:
   vector<T> fenw;
   int n;
 

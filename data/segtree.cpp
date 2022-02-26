@@ -1,34 +1,29 @@
 class segtree {
-  public:
+ public:
   struct node {
     // don't forget to set default value (used for leaves)
     // not necessarily neutral element!
     ... a = ...;
-    void apply(int l, int r, ... v) {
-      ...
-    }
+    void apply(int l, int r, ... v) { ... }
   };
   node unite(const node &a, const node &b) const {
     node res;
-    ...
-    return res;
+    ... return res;
   }
   inline void push(int x, int l, int r) {
     int y = (l + r) >> 1;
     int z = x + ((y - l + 1) << 1);
     // push from x into (x + 1) and z
     ...
-/*
-    if (tree[x].add != 0) {
-      tree[x + 1].apply(l, y, tree[x].add);
-      tree[z].apply(y + 1, r, tree[x].add);
-      tree[x].add = 0;
-    }
-*/
+    /*
+        if (tree[x].add != 0) {
+          tree[x + 1].apply(l, y, tree[x].add);
+          tree[z].apply(y + 1, r, tree[x].add);
+          tree[x].add = 0;
+        }
+    */
   }
-  inline void pull(int x, int z) {
-    tree[x] = unite(tree[x + 1], tree[z]);
-  }
+  inline void pull(int x, int z) { tree[x] = unite(tree[x + 1], tree[z]); }
   int n;
   vector<node> tree;
   void build(int x, int l, int r) {
@@ -74,7 +69,7 @@ class segtree {
     return res;
   }
   template <typename... M>
-  void modify(int x, int l, int r, int ll, int rr, const M&... v) {
+  void modify(int x, int l, int r, int ll, int rr, const M &...v) {
     if (ll <= l && r <= rr) {
       tree[x].apply(l, r, v...);
       return;
@@ -90,7 +85,8 @@ class segtree {
     }
     pull(x, z);
   }
-  int find_first_knowingly(int x, int l, int r, const function<bool(const node&)> &f) {
+  int find_first_knowingly(int x, int l, int r,
+                           const function<bool(const node &)> &f) {
     if (l == r) {
       return l;
     }
@@ -106,7 +102,8 @@ class segtree {
     pull(x, z);
     return res;
   }
-  int find_first(int x, int l, int r, int ll, int rr, const function<bool(const node&)> &f) {
+  int find_first(int x, int l, int r, int ll, int rr,
+                 const function<bool(const node &)> &f) {
     if (ll <= l && r <= rr) {
       if (!f(tree[x])) {
         return -1;
@@ -126,7 +123,8 @@ class segtree {
     pull(x, z);
     return res;
   }
-  int find_last_knowingly(int x, int l, int r, const function<bool(const node&)> &f) {
+  int find_last_knowingly(int x, int l, int r,
+                          const function<bool(const node &)> &f) {
     if (l == r) {
       return l;
     }
@@ -142,7 +140,8 @@ class segtree {
     pull(x, z);
     return res;
   }
-  int find_last(int x, int l, int r, int ll, int rr, const function<bool(const node&)> &f) {
+  int find_last(int x, int l, int r, int ll, int rr,
+                const function<bool(const node &)> &f) {
     if (ll <= l && r <= rr) {
       if (!f(tree[x])) {
         return -1;
@@ -183,17 +182,17 @@ class segtree {
     return get(0, 0, n - 1, p, p);
   }
   template <typename... M>
-  void modify(int ll, int rr, const M&... v) {
+  void modify(int ll, int rr, const M &...v) {
     assert(0 <= ll && ll <= rr && rr <= n - 1);
     modify(0, 0, n - 1, ll, rr, v...);
   }
   // find_first and find_last call all FALSE elements
   // to the left (right) of the sought position exactly once
-  int find_first(int ll, int rr, const function<bool(const node&)> &f) {
+  int find_first(int ll, int rr, const function<bool(const node &)> &f) {
     assert(0 <= ll && ll <= rr && rr <= n - 1);
     return find_first(0, 0, n - 1, ll, rr, f);
   }
-  int find_last(int ll, int rr, const function<bool(const node&)> &f) {
+  int find_last(int ll, int rr, const function<bool(const node &)> &f) {
     assert(0 <= ll && ll <= rr && rr <= n - 1);
     return find_last(0, 0, n - 1, ll, rr, f);
   }

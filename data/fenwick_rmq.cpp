@@ -1,6 +1,6 @@
 template <typename T, class F = function<T(const T &, const T &)>>
 class fenwick {
-public:
+ public:
   int n;
   vector<T> fenw, val;
   F func;
