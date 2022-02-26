@@ -1,0 +1,610 @@
+snippet DSU 
+class DSU {
+public:
+  vector<int> p;
+  int n;
+ 
+  DSU(int _n) : n(_n) {
+    p.resize(n);
+    iota(p.begin(), p.end(), 0);
+  }
+ 
+  inline int find(int x) {
+    return (x == p[x] ? x : (p[x] = find(p[x])));
+  }
+ 
+  inline bool unite(int x, int y) {
+    x = find(x);
+    y = find(y);
+    if (x != y) {
+      p[x] = y;
+      return true;
+    }
+    return false;
+  }
+};
+${0}
+endsnippet
+
+snippet mint
+template <typename T>
+T inverse(T a, T m) {
+  T u = 0, v = 1;
+  while (a != 0) {
+    T t = m / a;
+    m -= t * a; swap(a, m);
+    u -= t * v; swap(u, v);
+  }
+  assert(m == 1);
+  return u;
+}
+  
+template <typename T>
+class Modular {
+  public:
+  using Type = typename decay<decltype(T::value)>::type;
+  
+  constexpr Modular() : value() {}
+  template <typename U>
+  Modular(const U& x) {
+    value = normalize(x);
+  }
+  
+  template <typename U>
+  static Type normalize(const U& x) {
+    Type v;
+    if (-mod() <= x && x < mod()) v = static_cast<Type>(x);
+    else v = static_cast<Type>(x % mod());
+    if (v < 0) v += mod();
+    return v;
+  }
+  
+  const Type& operator()() const { return value; }
+  template <typename U>
+  explicit operator U() const { return static_cast<U>(value); }
+  constexpr static Type mod() { return T::value; }
+  
+  Modular& operator+=(const Modular& other) { if ((value += other.value) >= mod()) value -= mod(); return *this; }
+  Modular& operator-=(const Modular& other) { if ((value -= other.value) < 0) value += mod(); return *this; }
+  template <typename U> Modular& operator+=(const U& other) { return *this += Modular(other); }
+  template <typename U> Modular& operator-=(const U& other) { return *this -= Modular(other); }
+  Modular& operator++() { return *this += 1; }
+  Modular& operator--() { return *this -= 1; }
+  Modular operator++(int) { Modular result(*this); *this += 1; return result; }
+  Modular operator--(int) { Modular result(*this); *this -= 1; return result; }
+  Modular operator-() const { return Modular(-value); }
+  
+  template <typename U = T>
+  typename enable_if<is_same<typename Modular<U>::Type, int>::value, Modular>::type& operator*=(const Modular& rhs) {
+#ifdef _WIN32
+    uint64_t x = static_cast<int64_t>(value) * static_cast<int64_t>(rhs.value);
+    uint32_t xh = static_cast<uint32_t>(x >> 32), xl = static_cast<uint32_t>(x), d, m;
+    asm(
+      "divl %4; \n\t"
+      : "=a" (d), "=d" (m)
+      : "d" (xh), "a" (xl), "r" (mod())
+    );
+    value = m;
+#else
+    value = normalize(static_cast<int64_t>(value) * static_cast<int64_t>(rhs.value));
+#endif
+    return *this;
+  }
+  template <typename U = T>
+  typename enable_if<is_same<typename Modular<U>::Type, long long>::value, Modular>::type& operator*=(const Modular& rhs) {
+    long long q = static_cast<long long>(static_cast<long double>(value) * rhs.value / mod());
+    value = normalize(value * rhs.value - q * mod());
+    return *this;
+  }
+  template <typename U = T>
+  typename enable_if<!is_integral<typename Modular<U>::Type>::value, Modular>::type& operator*=(const Modular& rhs) {
+    value = normalize(value * rhs.value);
+    return *this;
+  }
+  
+  Modular& operator/=(const Modular& other) { return *this *= Modular(inverse(other.value, mod())); }
+  
+  friend const Type& abs(const Modular& x) { return x.value; }
+  
+  template <typename U>
+  friend bool operator==(const Modular<U>& lhs, const Modular<U>& rhs);
+  
+  template <typename U>
+  friend bool operator<(const Modular<U>& lhs, const Modular<U>& rhs);
+  
+  template <typename V, typename U>
+  friend V& operator>>(V& stream, Modular<U>& number);
+  
+  private:
+  Type value;
+};
+  
+template <typename T> bool operator==(const Modular<T>& lhs, const Modular<T>& rhs) { return lhs.value == rhs.value; }
+template <typename T, typename U> bool operator==(const Modular<T>& lhs, U rhs) { return lhs == Modular<T>(rhs); }
+template <typename T, typename U> bool operator==(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) == rhs; }
+  
+template <typename T> bool operator!=(const Modular<T>& lhs, const Modular<T>& rhs) { return !(lhs == rhs); }
+template <typename T, typename U> bool operator!=(const Modular<T>& lhs, U rhs) { return !(lhs == rhs); }
+template <typename T, typename U> bool operator!=(U lhs, const Modular<T>& rhs) { return !(lhs == rhs); }
+  
+template <typename T> bool operator<(const Modular<T>& lhs, const Modular<T>& rhs) { return lhs.value < rhs.value; }
+  
+template <typename T> Modular<T> operator+(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) += rhs; }
+template <typename T, typename U> Modular<T> operator+(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) += rhs; }
+template <typename T, typename U> Modular<T> operator+(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) += rhs; }
+  
+template <typename T> Modular<T> operator-(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) -= rhs; }
+template <typename T, typename U> Modular<T> operator-(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) -= rhs; }
+template <typename T, typename U> Modular<T> operator-(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) -= rhs; }
+  
+template <typename T> Modular<T> operator*(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) *= rhs; }
+template <typename T, typename U> Modular<T> operator*(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) *= rhs; }
+template <typename T, typename U> Modular<T> operator*(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) *= rhs; }
+  
+template <typename T> Modular<T> operator/(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) /= rhs; }
+template <typename T, typename U> Modular<T> operator/(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) /= rhs; }
+template <typename T, typename U> Modular<T> operator/(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) /= rhs; }
+  
+template<typename T, typename U>
+Modular<T> power(const Modular<T>& a, const U& b) {
+  assert(b >= 0);
+  Modular<T> x = a, res = 1;
+  U p = b;
+  while (p > 0) {
+    if (p & 1) res *= x;
+    x *= x;
+    p >>= 1;
+  }
+  return res;
+}
+  
+template <typename T>
+bool IsZero(const Modular<T>& number) {
+  return number() == 0;
+}
+  
+template <typename T>
+string to_string(const Modular<T>& number) {
+  return to_string(number());
+}
+  
+// U == std::ostream? but done this way because of fastoutput
+template <typename U, typename T>
+U& operator<<(U& stream, const Modular<T>& number) {
+  return stream << number();
+}
+  
+// U == std::istream? but done this way because of fastinput
+template <typename U, typename T>
+U& operator>>(U& stream, Modular<T>& number) {
+  typename common_type<typename Modular<T>::Type, long long>::type x;
+  stream >> x;
+  number.value = Modular<T>::normalize(x);
+  return stream;
+}
+  
+/*
+using ModType = int;
+  
+struct VarMod { static ModType value; };
+ModType VarMod::value;
+ModType& md = VarMod::value;
+using Mint = Modular<VarMod>;
+*/
+  
+constexpr int md = 998244353;
+using Mint = Modular<std::integral_constant<decay<decltype(md)>::type, md>>;
+  
+vector<Mint> fact(1, 1);
+vector<Mint> inv_fact(1, 1);
+  
+Mint C(int n, int k) {
+  if (k < 0 || k > n) {
+    return 0;
+  }
+  while ((int) fact.size() < n + 1) {
+    fact.push_back(fact.back() * (int) fact.size());
+    inv_fact.push_back(1 / fact.back());
+  }
+  return fact[n] * inv_fact[k] * inv_fact[n - k];
+}
+${0}
+endsnippet
+
+snippet Fenwick "2D Fenwick Tree" b
+template <typename T> class fenwick {
+public:
+  vector<vector<T>> fenw;
+  int n, m;
+
+  fenwick(int _n, int _m) : n(_n), m(_m) {
+    fenw.resize(n + 1);
+    for (int i = 0; i < n; ++i) {
+      fenw[i].resize(m);
+    }
+  }
+
+  inline void modify(int x, int y, T v) {
+    assert(x >= 0 && x < n);
+    assert(y >= 0 && y < m);
+    for (int i = x; i < n; i |= (i + 1)) {
+      for (int j = y; j < m; j |= (j + 1)) {
+        fenw[i][j] += v;
+      }
+    }
+  }
+
+  inline T get(int x, int y) {
+    assert(x >= 0 && x < n);
+    assert(y >= 0 && y < m);
+    T res{};
+    for (int i = x; i >= 0; i = (i & (i + 1)) - 1) {
+      for (int j = y; j >= 0; j = (j & (j + 1)) - 1) {
+        res +=  fenw[i][j];
+      }
+    }
+    return res;
+  }
+
+  inline T get(int x1, int y1, int x2, int y2) {
+    assert(x1 <= x2 && y1 <= y2);
+    assert(x1 >= 0 && x1 < n && x2 >= 0 && x2 < n);
+    assert(y1 >= 0 && y1 < m && y2 >= 0 && y2 < m);
+    T res = get(x2, y2);
+    if (x1 - 1 >= 0) {
+      res -= get(x1 - 1, y2);
+    }
+    if (y1 - 1 >= 0) {
+      res -= get(x2, y1 - 1);
+    }
+    if (x1 - 1 >= 0 && y1 - 1 >= 0) {
+      res += get(x1 - 1, y1 - 1);
+    }
+    return res;
+  }    
+};
+${0}
+endsnippet
+
+snippet Fenw "Fenwick Tree" b
+template <typename T> class fenwick {
+public:
+  vector<T> fenw;
+  int n;
+
+  fenwick(int _n) : n(_n) { fenw.resize(n); }
+
+  inline void modify(int x, T v) {
+    assert(x >= 0 && x < n);
+    while (x < n) {
+      fenw[x] += v;
+      x |= (x + 1);
+    }
+  }
+
+  inline T get(int x) {
+    assert(x >= 0 && x < n);
+    T res{};
+    while (x >= 0) {
+      res += fenw[x];
+      x = (x & (x + 1)) - 1;
+    }
+    return res;
+  }
+
+  inline T get(int l, int r) {
+    assert(l >= 0 && l < n);
+    assert(r >= 0 && r < n);
+    T res = get(r);
+    if (l - 1 >= 0) {
+      res -= get(l - 1);
+    }
+    return res;
+  }
+};
+${0}
+endsnippet
+
+snippet "Sparse" "Sparse Table" b
+template <typename T, class F = function<T(const T&, const T&)>>
+class SparseTable {
+ public:
+  int n;
+  vector<vector<T>> mat;
+  F func;
+ 
+  SparseTable() {}
+ 
+  void init(const vector<T>& a, const F& f) {
+    func = f;
+    n = static_cast<int>(a.size());
+    int max_log = 32 - __builtin_clz(n);
+    mat.resize(max_log);
+    mat[0] = a;
+    for (int j = 1; j < max_log; j++) {
+      mat[j].resize(n - (1 << j) + 1);
+      for (int i = 0; i <= n - (1 << j); i++) {
+        mat[j][i] = func(mat[j - 1][i], mat[j - 1][i + (1 << (j - 1))]);
+      }
+    }
+  }
+ 
+  T get(int from, int to) const {
+    assert(0 <= from && from <= to && to <= n - 1);
+    int lg = 32 - __builtin_clz(to - from + 1) - 1;
+    return func(mat[lg][from], mat[lg][to - (1 << lg) + 1]);
+  }
+};
+ 
+function<int(int, int)> GetMax;
+ 
+SparseTable<int> saux;
+${0}
+endsnippet
+
+snippet simple "Simple Header" b
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#ifdef LOCAL
+#include "../template/debug.h"
+#else
+#define debug(...) 42
+#endif
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(0);
+	${0}
+  return 0;
+}
+endsnippet
+
+snippet flow "Flow Graph" b
+template <typename T>
+class flow_graph {
+ public:
+  static constexpr T eps = (T) 1e-9;
+ 
+  struct edge {
+    int from;
+    int to;
+    T c;
+    T f;
+  };
+ 
+  vector<vector<int>> g;
+  vector<edge> edges;
+  int n;
+  int st;
+  int fin;
+  T flow;
+ 
+  flow_graph(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
+    assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
+    g.resize(n);
+    flow = 0;
+  }
+ 
+  void clear_flow() {
+    for (const edge &e : edges) {
+      e.f = 0;
+    }
+    flow = 0;
+  }
+   
+  int add(int from, int to, T forward_cap, T backward_cap) {
+    assert(0 <= from && from < n && 0 <= to && to < n);
+    int id = (int) edges.size();
+    g[from].push_back(id);
+    edges.push_back({from, to, forward_cap, 0});
+    g[to].push_back(id + 1);
+    edges.push_back({to, from, backward_cap, 0});
+    return id;
+  }
+};
+${0}
+
+endsnippet
+
+snippet dinic "Dinic" b
+template <typename T>
+class dinic {
+ public:
+  flow_graph<T> &g;
+ 
+  vector<int> ptr;
+  vector<int> d;
+  vector<int> q;
+ 
+  dinic(flow_graph<T> &_g) : g(_g) {
+    ptr.resize(g.n);
+    d.resize(g.n);
+    q.resize(g.n);
+  }
+ 
+  bool expath() {
+    fill(d.begin(), d.end(), -1);
+    q[0] = g.fin;
+    d[g.fin] = 0;
+    int beg = 0, end = 1;
+    while (beg < end) {
+      int i = q[beg++];
+      for (int id : g.g[i]) {
+        const auto &e = g.edges[id];
+        const auto &back = g.edges[id ^ 1];
+        if (back.c - back.f > g.eps && d[e.to] == -1) {
+          d[e.to] = d[i] + 1;
+          if (e.to == g.st) {
+            return true;
+          }
+          q[end++] = e.to;
+        }
+      }
+    }
+    return false;
+  }
+   
+  T dfs(int v, T w) {
+    if (v == g.fin) {
+      return w;
+    }
+    int &j = ptr[v];
+    while (j >= 0) {
+      int id = g.g[v][j];
+      const auto &e = g.edges[id];
+      if (e.c - e.f > g.eps && d[e.to] == d[v] - 1) {
+        T t = dfs(e.to, min(e.c - e.f, w));
+        if (t > g.eps) {
+          g.edges[id].f += t;
+          g.edges[id ^ 1].f -= t;
+          return t;
+        }
+      }
+      j--;
+    }
+    return 0;
+  }
+ 
+  T max_flow() {
+    while (expath()) {
+      for (int i = 0; i < g.n; i++) {
+        ptr[i] = (int) g.g[i].size() - 1;
+      }
+      T big_add = 0;
+      while (true) {
+        T add = dfs(g.st, numeric_limits<T>::max());
+        if (add <= g.eps) {
+          break;
+        }
+        big_add += add;
+      }
+      if (big_add <= g.eps) {
+        break;
+      }
+      g.flow += big_add;
+    }
+    return g.flow;
+  }
+ 
+  vector<bool> min_cut() {
+    max_flow();
+    vector<bool> ret(g.n);
+    for (int i = 0; i < g.n; i++) {
+      ret[i] = (d[i] != -1);
+    }
+    return ret;
+  }
+};
+${0}
+
+endsnippet
+
+snippet mcmf "Minimum Cost Maximum Flow" b
+template <typename T, typename C>
+class mcmf {
+ public:
+  static constexpr T eps = (T) 1e-9;
+ 
+  struct edge {
+    int from;
+    int to;
+    T c;
+    T f;
+    C cost;
+  };
+ 
+  vector<vector<int>> g;
+  vector<edge> edges;
+  vector<C> d;
+  vector<int> q;
+  vector<bool> in_queue;
+  vector<int> pe;
+  int n;
+  int st, fin;
+  T flow;
+  C cost;
+ 
+  mcmf(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
+    assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
+    g.resize(n);
+    d.resize(n);
+    in_queue.resize(n);
+    pe.resize(n);
+    flow = 0;
+    cost = 0;
+  }
+ 
+  void clear_flow() {
+    for (const edge &e : edges) {
+      e.f = 0;
+    }
+    flow = 0;
+  }
+   
+  void add(int from, int to, T forward_cap, T backward_cap, C cost) {
+    assert(0 <= from && from < n && 0 <= to && to < n);
+    g[from].push_back((int) edges.size());
+    edges.push_back({from, to, forward_cap, 0, cost});
+    g[to].push_back((int) edges.size());
+    edges.push_back({to, from, backward_cap, 0, -cost});
+  }
+ 
+  bool expath() {
+    fill(d.begin(), d.end(), numeric_limits<C>::max());
+    q.clear();
+    q.push_back(st);
+    d[st] = 0;
+    in_queue[st] = true;
+    int beg = 0;
+    bool found = false;
+    while (beg < (int) q.size()) {
+      int i = q[beg++];
+      if (i == fin) {
+        found = true;
+      }
+      in_queue[i] = false;
+      for (int id : g[i]) {
+        const edge &e = edges[id];
+        if (e.c - e.f > eps && d[i] + e.cost < d[e.to]) {
+          d[e.to] = d[i] + e.cost;
+          pe[e.to] = id;
+          if (!in_queue[e.to]) {
+            q.push_back(e.to);
+            in_queue[e.to] = true;
+          }
+        }
+      }
+    }
+    if (found) {
+      T push = numeric_limits<T>::max();
+      int v = fin;
+      while (v != st) {
+        const edge &e = edges[pe[v]];
+        push = min(push, e.c - e.f);
+        v = e.from;
+      }
+      v = fin;
+      while (v != st) {
+        edge &e = edges[pe[v]];
+        e.f += push;
+        edge &back = edges[pe[v] ^ 1];
+        back.f -= push;
+        v = e.from;
+      }
+      flow += push;
+      cost += push * d[fin];
+    }
+    return found;
+  }
+   
+  pair<T, C> max_flow_min_cost() {
+    while (expath()) {}
+    return {flow, cost};
+  }
+};
+
+${0}
+endsnippet
+
