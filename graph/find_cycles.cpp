@@ -39,6 +39,7 @@ vector<vector<int>> find_cycles(const graph<T> &g, int bound = 1 << 30) {
     }
   }
   return cycles;
+  // cycles are given by edge ids, all cycles are simple
   // returns at most bound cycles (given by edge ids)
   // digraph: finds at least one cycle in every connected component
   // undigraph: finds cycle basis
