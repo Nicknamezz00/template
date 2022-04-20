@@ -4,42 +4,22 @@ vector<int> manacher(int n, const T &s) {
     return vector<int>();
   }
   vector<int> res(2 * n - 1, 0);
-  {
-    // odd
-    int l = -1, r = -1;
-    for (int i = 0; i < n; i++) {
-      int p = (i >= r ? 0 : min(r - i, res[2 * (l + r - i)]));
-      while (i + p + 1 < n && i - p - 1 >= 0) {
-        if (s[i + p + 1] != s[i - p - 1]) {
-          break;
-        }
-        p++;
+  int l = -1, r = -1;
+  for (int z = 0; z < 2 * n - 1; z++) {
+    int i = (z + 1) >> 1;
+    int j = z >> 1;
+    int p = (i >= r ? 0 : min(r - i, res[2 * (l + r) - z]));
+    while (j + p + 1 < n && i - p - 1 >= 0) {
+      if (!(s[j + p + 1] == s[i - p - 1])) {
+        break;
       }
-      if (i + p > r) {
-        l = i - p;
-        r = i + p;
-      }
-      res[2 * i] = p;
+      p++;
     }
-  }
-  {
-    // even
-    int l = -1, r = -1;
-    for (int i = 0; i < n - 1; i++) {
-      debug(l, r);
-      int p = (i >= r ? 0 : min(r - i, res[2 * (l + r - i) - 1]));
-      while (i + p + 1 < n && i - p >= 0) {
-        if (s[i + p + 1] != s[i - p]) {
-          break;
-        }
-        p++;
-      }
-      if (i + p > r) {
-        l = i - p + 1;
-        r = i + p;
-      }
-      res[2 * i + 1] = p;
+    if (j + p > r) {
+      l = i - p;
+      r = j + p;
     }
+    res[z] = p;
   }
   return res;
   // res[2 * i] = odd radius in position i
@@ -49,5 +29,5 @@ vector<int> manacher(int n, const T &s) {
 
 template <typename T>
 vector<int> manacher(const T &s) {
-  return manacher(s.size(), s);
+  return manacher((int) s.size(), s);
 }
