@@ -1,4 +1,4 @@
-snippet DSU 
+snippet dsu
 class DSU {
 public:
   vector<int> p;
@@ -26,249 +26,10 @@ public:
 ${0}
 endsnippet
 
-snippet mint
+snippet fenwick
 template <typename T>
-T inverse(T a, T m) {
-  T u = 0, v = 1;
-  while (a != 0) {
-    T t = m / a;
-    m -= t * a; swap(a, m);
-    u -= t * v; swap(u, v);
-  }
-  assert(m == 1);
-  return u;
-}
-  
-template <typename T>
-class Modular {
-  public:
-  using Type = typename decay<decltype(T::value)>::type;
-  
-  constexpr Modular() : value() {}
-  template <typename U>
-  Modular(const U& x) {
-    value = normalize(x);
-  }
-  
-  template <typename U>
-  static Type normalize(const U& x) {
-    Type v;
-    if (-mod() <= x && x < mod()) v = static_cast<Type>(x);
-    else v = static_cast<Type>(x % mod());
-    if (v < 0) v += mod();
-    return v;
-  }
-  
-  const Type& operator()() const { return value; }
-  template <typename U>
-  explicit operator U() const { return static_cast<U>(value); }
-  constexpr static Type mod() { return T::value; }
-  
-  Modular& operator+=(const Modular& other) { if ((value += other.value) >= mod()) value -= mod(); return *this; }
-  Modular& operator-=(const Modular& other) { if ((value -= other.value) < 0) value += mod(); return *this; }
-  template <typename U> Modular& operator+=(const U& other) { return *this += Modular(other); }
-  template <typename U> Modular& operator-=(const U& other) { return *this -= Modular(other); }
-  Modular& operator++() { return *this += 1; }
-  Modular& operator--() { return *this -= 1; }
-  Modular operator++(int) { Modular result(*this); *this += 1; return result; }
-  Modular operator--(int) { Modular result(*this); *this -= 1; return result; }
-  Modular operator-() const { return Modular(-value); }
-  
-  template <typename U = T>
-  typename enable_if<is_same<typename Modular<U>::Type, int>::value, Modular>::type& operator*=(const Modular& rhs) {
-#ifdef _WIN32
-    uint64_t x = static_cast<int64_t>(value) * static_cast<int64_t>(rhs.value);
-    uint32_t xh = static_cast<uint32_t>(x >> 32), xl = static_cast<uint32_t>(x), d, m;
-    asm(
-      "divl %4; \n\t"
-      : "=a" (d), "=d" (m)
-      : "d" (xh), "a" (xl), "r" (mod())
-    );
-    value = m;
-#else
-    value = normalize(static_cast<int64_t>(value) * static_cast<int64_t>(rhs.value));
-#endif
-    return *this;
-  }
-  template <typename U = T>
-  typename enable_if<is_same<typename Modular<U>::Type, long long>::value, Modular>::type& operator*=(const Modular& rhs) {
-    long long q = static_cast<long long>(static_cast<long double>(value) * rhs.value / mod());
-    value = normalize(value * rhs.value - q * mod());
-    return *this;
-  }
-  template <typename U = T>
-  typename enable_if<!is_integral<typename Modular<U>::Type>::value, Modular>::type& operator*=(const Modular& rhs) {
-    value = normalize(value * rhs.value);
-    return *this;
-  }
-  
-  Modular& operator/=(const Modular& other) { return *this *= Modular(inverse(other.value, mod())); }
-  
-  friend const Type& abs(const Modular& x) { return x.value; }
-  
-  template <typename U>
-  friend bool operator==(const Modular<U>& lhs, const Modular<U>& rhs);
-  
-  template <typename U>
-  friend bool operator<(const Modular<U>& lhs, const Modular<U>& rhs);
-  
-  template <typename V, typename U>
-  friend V& operator>>(V& stream, Modular<U>& number);
-  
-  private:
-  Type value;
-};
-  
-template <typename T> bool operator==(const Modular<T>& lhs, const Modular<T>& rhs) { return lhs.value == rhs.value; }
-template <typename T, typename U> bool operator==(const Modular<T>& lhs, U rhs) { return lhs == Modular<T>(rhs); }
-template <typename T, typename U> bool operator==(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) == rhs; }
-  
-template <typename T> bool operator!=(const Modular<T>& lhs, const Modular<T>& rhs) { return !(lhs == rhs); }
-template <typename T, typename U> bool operator!=(const Modular<T>& lhs, U rhs) { return !(lhs == rhs); }
-template <typename T, typename U> bool operator!=(U lhs, const Modular<T>& rhs) { return !(lhs == rhs); }
-  
-template <typename T> bool operator<(const Modular<T>& lhs, const Modular<T>& rhs) { return lhs.value < rhs.value; }
-  
-template <typename T> Modular<T> operator+(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) += rhs; }
-template <typename T, typename U> Modular<T> operator+(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) += rhs; }
-template <typename T, typename U> Modular<T> operator+(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) += rhs; }
-  
-template <typename T> Modular<T> operator-(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) -= rhs; }
-template <typename T, typename U> Modular<T> operator-(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) -= rhs; }
-template <typename T, typename U> Modular<T> operator-(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) -= rhs; }
-  
-template <typename T> Modular<T> operator*(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) *= rhs; }
-template <typename T, typename U> Modular<T> operator*(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) *= rhs; }
-template <typename T, typename U> Modular<T> operator*(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) *= rhs; }
-  
-template <typename T> Modular<T> operator/(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) /= rhs; }
-template <typename T, typename U> Modular<T> operator/(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) /= rhs; }
-template <typename T, typename U> Modular<T> operator/(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) /= rhs; }
-  
-template<typename T, typename U>
-Modular<T> power(const Modular<T>& a, const U& b) {
-  assert(b >= 0);
-  Modular<T> x = a, res = 1;
-  U p = b;
-  while (p > 0) {
-    if (p & 1) res *= x;
-    x *= x;
-    p >>= 1;
-  }
-  return res;
-}
-  
-template <typename T>
-bool IsZero(const Modular<T>& number) {
-  return number() == 0;
-}
-  
-template <typename T>
-string to_string(const Modular<T>& number) {
-  return to_string(number());
-}
-  
-// U == std::ostream? but done this way because of fastoutput
-template <typename U, typename T>
-U& operator<<(U& stream, const Modular<T>& number) {
-  return stream << number();
-}
-  
-// U == std::istream? but done this way because of fastinput
-template <typename U, typename T>
-U& operator>>(U& stream, Modular<T>& number) {
-  typename common_type<typename Modular<T>::Type, long long>::type x;
-  stream >> x;
-  number.value = Modular<T>::normalize(x);
-  return stream;
-}
-  
-/*
-using ModType = int;
-  
-struct VarMod { static ModType value; };
-ModType VarMod::value;
-ModType& md = VarMod::value;
-using Mint = Modular<VarMod>;
-*/
-  
-constexpr int md = 998244353;
-using Mint = Modular<std::integral_constant<decay<decltype(md)>::type, md>>;
-  
-vector<Mint> fact(1, 1);
-vector<Mint> inv_fact(1, 1);
-  
-Mint C(int n, int k) {
-  if (k < 0 || k > n) {
-    return 0;
-  }
-  while ((int) fact.size() < n + 1) {
-    fact.push_back(fact.back() * (int) fact.size());
-    inv_fact.push_back(1 / fact.back());
-  }
-  return fact[n] * inv_fact[k] * inv_fact[n - k];
-}
-${0}
-endsnippet
-
-snippet fenwick2d "2D Fenwick Tree" b
-template <typename T> class fenwick2d {
-public:
-  vector<vector<T>> fenw;
-  int n, m;
-
-  fenwick2d(int _n, int _m) : n(_n), m(_m) {
-    fenw.resize(n + 1);
-    for (int i = 0; i < n; ++i) {
-      fenw[i].resize(m);
-    }
-  }
-
-  inline void modify(int x, int y, T v) {
-    assert(x >= 0 && x < n);
-    assert(y >= 0 && y < m);
-    for (int i = x; i < n; i |= (i + 1)) {
-      for (int j = y; j < m; j |= (j + 1)) {
-        fenw[i][j] += v;
-      }
-    }
-  }
-
-  inline T get(int x, int y) {
-    assert(x >= 0 && x < n);
-    assert(y >= 0 && y < m);
-    T res{};
-    for (int i = x; i >= 0; i = (i & (i + 1)) - 1) {
-      for (int j = y; j >= 0; j = (j & (j + 1)) - 1) {
-        res +=  fenw[i][j];
-      }
-    }
-    return res;
-  }
-
-  inline T get(int x1, int y1, int x2, int y2) {
-    assert(x1 <= x2 && y1 <= y2);
-    assert(x1 >= 0 && x1 < n && x2 >= 0 && x2 < n);
-    assert(y1 >= 0 && y1 < m && y2 >= 0 && y2 < m);
-    T res = get(x2, y2);
-    if (x1 - 1 >= 0) {
-      res -= get(x1 - 1, y2);
-    }
-    if (y1 - 1 >= 0) {
-      res -= get(x2, y1 - 1);
-    }
-    if (x1 - 1 >= 0 && y1 - 1 >= 0) {
-      res += get(x1 - 1, y1 - 1);
-    }
-    return res;
-  }    
-};
-${0}
-endsnippet
-
-snippet fenwick "Fenwick Tree" b
-template <typename T> class fenwick {
-public:
+class fenwick {
+ public:
   vector<T> fenw;
   int n;
 
@@ -305,305 +66,116 @@ public:
 ${0}
 endsnippet
 
-snippet "sparse" "Sparse Table" b
-template <typename T, class F = function<T(const T&, const T&)>>
-class SparseTable {
+snippet fenwick2d
+template <typename T>
+class fenwick {
+ public:
+  vector<vector<T>> fenw;
+  int n, m;
+
+  fenwick(int _n, int _m) : n(_n), m(_m) {
+    fenw.resize(n + 1);
+    for (int i = 0; i < n; ++i) {
+      fenw[i].resize(m);
+    }
+  }
+
+  inline void modify(int x, int y, T v) {
+    assert(x >= 0 && x < n);
+    assert(y >= 0 && y < m);
+    for (int i = x; i < n; i |= (i + 1)) {
+      for (int j = y; j < m; j |= (j + 1)) {
+        fenw[i][j] += v;
+      }
+    }
+  }
+
+  inline T get(int x, int y) {
+    assert(x >= 0 && x < n);
+    assert(y >= 0 && y < m);
+    T res{};
+    for (int i = x; i >= 0; i = (i & (i + 1)) - 1) {
+      for (int j = y; j >= 0; j = (j & (j + 1)) - 1) {
+        res += fenw[i][j];
+      }
+    }
+    return res;
+  }
+
+  inline T get(int x1, int y1, int x2, int y2) {
+    assert(x1 <= x2 && y1 <= y2);
+    assert(x1 >= 0 && x1 < n && x2 >= 0 && x2 < n);
+    assert(y1 >= 0 && y1 < m && y2 >= 0 && y2 < m);
+    T res = get(x2, y2);
+    if (x1 - 1 >= 0) {
+      res -= get(x1 - 1, y2);
+    }
+    if (y1 - 1 >= 0) {
+      res -= get(x2, y1 - 1);
+    }
+    if (x1 - 1 >= 0 && y1 - 1 >= 0) {
+      res += get(x1 - 1, y1 - 1);
+    }
+    return res;
+  }
+};
+${0}
+endsnippet
+
+snippet fenwick_rmq
+template <typename T, class F = function<T(const T &, const T &)>>
+class fenwick {
  public:
   int n;
-  vector<vector<T>> mat;
+  vector<T> fenw, val;
   F func;
 
-  SparseTable(const vector<T>& a, const F& f) : func(f) {
-    n = static_cast<int>(a.size());
-    int max_log = 32 - __builtin_clz(n);
-    mat.resize(max_log);
-    mat[0] = a;
-    for (int j = 1; j < max_log; j++) {
-      mat[j].resize(n - (1 << j) + 1);
-      for (int i = 0; i <= n - (1 << j); i++) {
-        mat[j][i] = func(mat[j - 1][i], mat[j - 1][i + (1 << (j - 1))]);
+  fenwick(const vector<T> &v, const F &f) : func(f) {
+    n = static_cast<int>(v.size());
+    val.resize(n);
+    fenw.resize(n);
+    for (int i = 1; i <= n; ++i) {
+      val[i - 1] = fenw[i - 1] = v[i - 1];
+      int len = i & -i;
+      for (int j = 1; j < len; j <<= 1) {
+        fenw[i - 1] = func(fenw[i - 1], fenw[i - j - 1]);
       }
     }
   }
 
-  T get(int from, int to) const {
-    assert(0 <= from && from <= to && to <= n - 1);
-    int lg = 32 - __builtin_clz(to - from + 1) - 1;
-    return func(mat[lg][from], mat[lg][to - (1 << lg) + 1]);
-  }
-};
-
-${0}
-endsnippet
-
-snippet simple "Simple Header" b
-#include <bits/stdc++.h>
-
-using namespace std;
-
-#ifdef LOCAL
-#include "../template/debug.h"
-#else
-#define debug(...) 42
-#endif
-
-int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(0);
-	${0}
-  return 0;
-}
-endsnippet
-
-snippet flow "Flow Graph" b
-template <typename T>
-class flow_graph {
- public:
-  static constexpr T eps = (T) 1e-9;
- 
-  struct edge {
-    int from;
-    int to;
-    T c;
-    T f;
-  };
- 
-  vector<vector<int>> g;
-  vector<edge> edges;
-  int n;
-  int st;
-  int fin;
-  T flow;
- 
-  flow_graph(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
-    assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
-    g.resize(n);
-    flow = 0;
-  }
- 
-  void clear_flow() {
-    for (const edge &e : edges) {
-      e.f = 0;
-    }
-    flow = 0;
-  }
-   
-  int add(int from, int to, T forward_cap, T backward_cap) {
-    assert(0 <= from && from < n && 0 <= to && to < n);
-    int id = (int) edges.size();
-    g[from].push_back(id);
-    edges.push_back({from, to, forward_cap, 0});
-    g[to].push_back(id + 1);
-    edges.push_back({to, from, backward_cap, 0});
-    return id;
-  }
-};
-${0}
-
-endsnippet
-
-snippet dinic "Dinic" b
-template <typename T>
-class dinic {
- public:
-  flow_graph<T> &g;
- 
-  vector<int> ptr;
-  vector<int> d;
-  vector<int> q;
- 
-  dinic(flow_graph<T> &_g) : g(_g) {
-    ptr.resize(g.n);
-    d.resize(g.n);
-    q.resize(g.n);
-  }
- 
-  bool expath() {
-    fill(d.begin(), d.end(), -1);
-    q[0] = g.fin;
-    d[g.fin] = 0;
-    int beg = 0, end = 1;
-    while (beg < end) {
-      int i = q[beg++];
-      for (int id : g.g[i]) {
-        const auto &e = g.edges[id];
-        const auto &back = g.edges[id ^ 1];
-        if (back.c - back.f > g.eps && d[e.to] == -1) {
-          d[e.to] = d[i] + 1;
-          if (e.to == g.st) {
-            return true;
-          }
-          q[end++] = e.to;
-        }
+  void modify(int x, T v) {
+    assert(x >= 0 && x < n);
+    val[x] = v;
+    for (int i = x + 1; i <= n; i += i & -i) {
+      fenw[i - 1] = val[i - 1];
+      int len = i & -i;
+      for (int j = 1; j < len; j <<= 1) {
+        fenw[i - 1] = func(fenw[i - 1], fenw[i - j - 1]);
       }
     }
-    return false;
   }
-   
-  T dfs(int v, T w) {
-    if (v == g.fin) {
-      return w;
-    }
-    int &j = ptr[v];
-    while (j >= 0) {
-      int id = g.g[v][j];
-      const auto &e = g.edges[id];
-      if (e.c - e.f > g.eps && d[e.to] == d[v] - 1) {
-        T t = dfs(e.to, min(e.c - e.f, w));
-        if (t > g.eps) {
-          g.edges[id].f += t;
-          g.edges[id ^ 1].f -= t;
-          return t;
-        }
-      }
-      j--;
-    }
-    return 0;
-  }
- 
-  T max_flow() {
-    while (expath()) {
-      for (int i = 0; i < g.n; i++) {
-        ptr[i] = (int) g.g[i].size() - 1;
-      }
-      T big_add = 0;
-      while (true) {
-        T add = dfs(g.st, numeric_limits<T>::max());
-        if (add <= g.eps) {
-          break;
-        }
-        big_add += add;
-      }
-      if (big_add <= g.eps) {
+
+  T get(int l, int r) {
+    assert(l >= 0 && l < n);
+    assert(r >= 0 && r < n);
+    ++l, ++r;
+    T res = val[r - 1];
+    while (true) {
+      res = func(res, val[r - 1]);
+      if (l == r) {
         break;
       }
-      g.flow += big_add;
+      for (--r; r - (r & -r) >= l; r -= (r & -r)) {
+        res = func(res, fenw[r - 1]);
+      }
     }
-    return g.flow;
-  }
- 
-  vector<bool> min_cut() {
-    max_flow();
-    vector<bool> ret(g.n);
-    for (int i = 0; i < g.n; i++) {
-      ret[i] = (d[i] != -1);
-    }
-    return ret;
+    return res;
   }
 };
 ${0}
-
 endsnippet
 
-snippet mcmf "Minimum Cost Maximum Flow" b
-template <typename T, typename C>
-class mcmf {
-  public:
-  static constexpr T eps = (T) 1e-9;
-
-  struct edge {
-    int from;
-    int to;
-    T c;
-    T f;
-    C cost;
-  };
-
-  vector< vector<int> > g;
-  vector<edge> edges;
-  vector<C> d;
-  vector<int> q;
-  vector<bool> in_queue;
-  vector<int> pe;
-  int n;
-  int st, fin;
-  T flow;
-  C cost;
-
-  mcmf(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
-    assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
-    g.resize(n);
-    d.resize(n);
-    in_queue.resize(n);
-    pe.resize(n);
-    flow = 0;
-    cost = 0;
-  }
-
-  void clear_flow() {
-    for (const edge &e : edges) {
-      e.f = 0;
-    }
-    flow = 0;
-  }
-   
-  void add(int from, int to, T forward_cap, T backward_cap, C cost) {
-    assert(0 <= from && from < n && 0 <= to && to < n);
-    g[from].push_back((int) edges.size());
-    edges.push_back({from, to, forward_cap, 0, cost});
-    g[to].push_back((int) edges.size());
-    edges.push_back({to, from, backward_cap, 0, -cost});
-  }
-
-  bool expath() {
-    fill(d.begin(), d.end(), numeric_limits<C>::max());
-    q.clear();
-    q.push_back(st);
-    d[st] = 0;
-    in_queue[st] = true;
-    int beg = 0;
-    bool found = false;
-    while (beg < (int) q.size()) {
-      int i = q[beg++];
-      if (i == fin) {
-        found = true;
-      }
-      in_queue[i] = false;
-      for (int id : g[i]) {
-        const edge &e = edges[id];
-        if (e.c - e.f > eps && d[i] + e.cost < d[e.to]) {
-          d[e.to] = d[i] + e.cost;
-          pe[e.to] = id;
-          if (!in_queue[e.to]) {
-            q.push_back(e.to);
-            in_queue[e.to] = true;
-          }
-        }
-      }
-    }
-    if (found) {
-      T push = numeric_limits<T>::max();
-      int v = fin;
-      while (v != st) {
-        const edge &e = edges[pe[v]];
-        push = min(push, e.c - e.f);
-        v = e.from;
-      }
-      v = fin;
-      while (v != st) {
-        edge &e = edges[pe[v]];
-        e.f += push;
-        edge &back = edges[pe[v] ^ 1];
-        back.f -= push;
-        v = e.from;
-      }
-      flow += push;
-      cost += push * d[fin];
-    }
-    return found;
-  }
-   
-  pair<T, C> max_flow_min_cost() {
-    while (expath()) {
-    }
-    return make_pair(flow, cost);
-  }
-};
-
-${0}
-endsnippet
-
-snippet segtree "Segment Tree" 
+snippet segtree
 class segtree {
  public:
   struct node {
@@ -803,154 +375,1118 @@ class segtree {
     return find_last(0, 0, n - 1, ll, rr, f);
   }
 };
-
 ${0}
 endsnippet
 
-snippet graph "Graph"
-template <typename T>
-class graph {
+snippet sparsetable
+template <typename T, class F = function<T(const T&, const T&)>>
+class SparseTable {
  public:
+  int n;
+  vector<vector<T>> mat;
+  F func;
+
+  SparseTable(const vector<T>& a, const F& f) : func(f) {
+    n = static_cast<int>(a.size());
+    int max_log = 32 - __builtin_clz(n);
+    mat.resize(max_log);
+    mat[0] = a;
+    for (int j = 1; j < max_log; j++) {
+      mat[j].resize(n - (1 << j) + 1);
+      for (int i = 0; i <= n - (1 << j); i++) {
+        mat[j][i] = func(mat[j - 1][i], mat[j - 1][i + (1 << (j - 1))]);
+      }
+    }
+  }
+
+  T get(int from, int to) const {
+    assert(0 <= from && from <= to && to <= n - 1);
+    int lg = 32 - __builtin_clz(to - from + 1) - 1;
+    return func(mat[lg][from], mat[lg][to - (1 << lg) + 1]);
+  }
+};
+${0}
+endsnippet
+
+snippet treap
+mt19937 rng((unsigned int) chrono::steady_clock::now().time_since_epoch().count());
+
+class node {
+ public:
+  int id;
+  node* l;
+  node* r;
+  node* p;
+  bool rev;
+  int sz;
+  // declare extra variables:
+  int P;
+ 
+  node(int _id) {
+    id = _id;
+    l = r = p = nullptr;
+    rev = false;
+    sz = 1;
+    // init extra variables:
+    P = rng();
+  }
+ 
+  void unsafe_reverse() {
+    rev ^= 1;
+    swap(l, r);
+    pull();
+  }
+ 
+  // apply changes:
+  void unsafe_apply() {
+    
+  }
+ 
+  void push() {
+    if (rev) {
+      if (l != nullptr) {
+        l->unsafe_reverse();
+      }
+      if (r != nullptr) {
+        r->unsafe_reverse();
+      }
+      rev = 0;
+    }
+    // now push everything else:
+ 
+  }
+ 
+  void pull() {
+    sz = 1;
+    // now init from self:
+ 
+    if (l != nullptr) {
+      l->p = this;
+      sz += l->sz;
+      // now pull from l:
+ 
+    }
+    if (r != nullptr) {
+      r->p = this;
+      sz += r->sz;
+      // now pull from r:
+ 
+    }
+  }
+};
+ 
+void debug_node(node* v, string pref = "") {
+  #ifdef LOCAL
+    if (v != nullptr) {
+      debug_node(v->r, pref + " ");
+      cerr << pref << "-" << " " << v->id << '\n';
+      debug_node(v->l, pref + " ");
+    } else {
+      cerr << pref << "-" << " " << "nullptr" << '\n';
+    }
+  #endif
+}
+ 
+namespace treap {
+ 
+pair<node*, int> find(node* v, const function<int(node*)> &go_to) {
+  // go_to returns: 0 -- found; -1 -- go left; 1 -- go right
+  // find returns the last vertex on the descent and its go_to
+  if (v == nullptr) {
+    return {nullptr, 0};
+  }
+  int dir;
+  while (true) {
+    v->push();
+    dir = go_to(v);
+    if (dir == 0) {
+      break;
+    }
+    node* u = (dir == -1 ? v->l : v->r);
+    if (u == nullptr) {
+      break;
+    }
+    v = u;
+  }
+  return {v, dir};
+}
+ 
+node* get_leftmost(node* v) {
+  return find(v, [&](node*) { return -1; }).first;
+}
+ 
+node* get_rightmost(node* v) {
+  return find(v, [&](node*) { return 1; }).first;
+}
+ 
+node* get_kth(node* v, int k) { // 0-indexed
+  pair<node*, int> p = find(v, [&](node* u) {
+    if (u->l != nullptr) {
+      if (u->l->sz > k) {
+        return -1;
+      }
+      k -= u->l->sz;
+    }
+    if (k == 0) {
+      return 0;
+    }
+    k--;
+    return 1;
+  });
+  return (p.second == 0 ? p.first : nullptr);
+}
+ 
+int get_position(node* v) { // 0-indexed
+  int k = (v->l != nullptr ? v->l->sz : 0);
+  while (v->p != nullptr) {
+    if (v == v->p->r) {
+      k++;
+      if (v->p->l != nullptr) {
+        k += v->p->l->sz;
+      }
+    }
+    v = v->p;
+  }
+  return k;
+}
+ 
+node* get_bst_root(node* v) {
+  while (v->p != nullptr) {
+    v = v->p;
+  }
+  return v;
+}
+ 
+pair<node*, node*> split(node* v, const function<bool(node*)> &is_right) {
+  if (v == nullptr) {
+    return {nullptr, nullptr};
+  }
+  v->push();
+  if (is_right(v)) {
+    pair<node*, node*> p = split(v->l, is_right);
+    if (p.first != nullptr) {
+      p.first->p = nullptr;
+    }
+    v->l = p.second;
+    v->pull();
+    return {p.first, v};
+  } else {
+    pair<node*, node*> p = split(v->r, is_right);
+    v->r = p.first;
+    if (p.second != nullptr) {
+      p.second->p = nullptr;
+    }
+    v->pull();
+    return {v, p.second};
+  }
+}
+ 
+pair<node*, node*> split_leftmost_k(node* v, int k) {
+  return split(v, [&](node* u) {
+    int left_and_me = (u->l != nullptr ? u->l->sz : 0) + 1;
+    if (k >= left_and_me) {
+      k -= left_and_me;
+      return false;
+    }
+    return true;
+  });
+}
+ 
+node* merge(node* v, node* u) {
+  if (v == nullptr) {
+    return u;
+  }
+  if (u == nullptr) {
+    return v;
+  }
+  if (v->P > u->P) {
+//    if (rng() % (v->sz + u->sz) < (unsigned int) v->sz) {
+    v->push();
+    v->r = merge(v->r, u);
+    v->pull();
+    return v;
+  } else {
+    u->push();
+    u->l = merge(v, u->l);
+    u->pull();
+    return u;
+  }
+}
+ 
+int count_left(node* v, const function<bool(node*)> &is_right) {
+  if (v == nullptr) {
+    return 0;
+  }
+  v->push();
+  if (is_right(v)) {
+    return count_left(v->l, is_right);
+  }
+  return (v->l != nullptr ? v->l->sz : 0) + 1 + count_left(v->r, is_right);
+}
+ 
+node* add(node* r, node* v, const function<bool(node*)> &go_left) {
+  pair<node*, node*> p = split(r, go_left);
+  return merge(p.first, merge(v, p.second));
+}
+ 
+node* remove(node* v) { // returns the new root
+  v->push();
+  node* x = v->l;
+  node* y = v->r;
+  node* p = v->p;
+  v->l = v->r = v->p = nullptr;
+  v->push();
+  v->pull(); // now v might be reusable...
+  node* z = merge(x, y);
+  if (p == nullptr) {
+    if (z != nullptr) {
+      z->p = nullptr;
+    }
+    return z;
+  }
+  if (p->l == v) {
+    p->l = z;
+  }
+  if (p->r == v) {
+    p->r = z;
+  }
+  while (true) {
+    p->push();
+    p->pull();
+    if (p->p == nullptr) {
+      break;
+    }
+    p = p->p;
+  }
+  return p;
+}
+ 
+node* next(node* v) {
+  if (v->r == nullptr) {
+    while (v->p != nullptr && v->p->r == v) {
+      v = v->p;
+    }
+    return v->p;
+  }
+  v->push();
+  v = v->r;
+  while (v->l != nullptr) {
+    v->push();
+    v = v->l;
+  }
+  return v;
+}
+ 
+node* prev(node* v) {
+  if (v->l == nullptr) {
+    while (v->p != nullptr && v->p->l == v) {
+      v = v->p;
+    }
+    return v->p;
+  }
+  v->push();
+  v = v->l;
+  while (v->r != nullptr) {
+    v->push();
+    v = v->r;
+  }
+  return v;
+}
+ 
+int get_size(node* v) {
+  return (v != nullptr ? v->sz : 0);
+}
+ 
+template<typename... T>
+void apply(node* v, T... args) {
+  v->unsafe_apply(args...);
+}
+ 
+void reverse(node* v) {
+  v->unsafe_reverse();
+}
+ 
+}  // namespace treap
+ 
+using namespace treap;
+${0}
+endsnippet
+
+snippet blossom
+template <typename T>
+vector<int> find_max_unweighted_matching(const undigraph<T>& g) {
+  vector<int> mate(g.n, -1);    // 匹配
+  vector<int> label(g.n);       // "o" or "i" 初始点设为 "o", 这里以"0"代替"o", "1"代替"i"
+  vector<int> parent(g.n);      // parent
+  vector<int> orig(g.n);        // 花根
+  queue<int> q;
+  vector<int> aux(g.n, -1);     // 时间戳
+  int aux_time = -1;
+  auto lca = [&](int x, int y) {
+    aux_time++;
+    while (true) {
+      if (x != -1) {
+        if (aux[x] == aux_time) {  // 找到拜访过的点(LCA)
+          return x;
+        }
+        aux[x] = aux_time;
+        if (mate[x] == -1) {
+          x = -1;
+        } else {
+          x = orig[parent[mate[x]]];  // 以匹配点的父节点继续寻找
+        }
+      }
+      swap(x, y);
+    }
+  };
+  auto blossom = [&](int v, int w, int a) {
+    while (orig[v] != a) {
+      parent[v] = w;
+      w = mate[v];
+      if (label[w] == 1) {  // 以初始点为"o"进行增广
+        label[w] = 0;
+        q.push(w);
+      }
+      orig[v] = orig[w] = a;  // 缩花
+      v = parent[w];
+    }
+  };
+  auto augment = [&](int v) {
+    while (v != -1) {
+      int pv = parent[v];
+      int nv = mate[pv];
+      mate[v] = pv;
+      mate[pv] = v;
+      v = nv;
+    }
+  };
+  auto bfs = [&](int root) {
+    fill(label.begin(), label.end(), -1);
+    iota(orig.begin(), orig.end(), 0);
+    while (!q.empty()) {
+      q.pop();
+    }
+    q.push(root);
+    label[root] = 0;
+    while (!q.empty()) {
+      int v = q.front();
+      q.pop();
+      for (int id : g.g[v]) {
+        auto &e = g.edges[id];
+        int x = e.from ^ e.to ^ v;
+        if (label[x] == -1) {  // 找到未拜访点
+          label[x] = 1;        // 标记 "i"
+          parent[x] = v;
+          if (mate[x] == -1) {  // 找到未匹配点
+            augment(x);         // 增广
+            return true;
+          }
+          // 找到已匹配点,将匹配点入队,延伸交错树
+          label[mate[x]] = 0;
+          q.push(mate[x]);
+          continue;
+        }
+        if (label[x] == 0 && orig[v] != orig[x]) {  // 找到已拜访点 且标记同为"o" 代表找到"花"
+          int a = lca(orig[v], orig[x]);
+          // 找LCA，缩花
+          blossom(x, v, a);
+          blossom(v, x, a);
+        }
+      }
+    }
+    return false;
+  };
+  auto greedy = [&]() {
+    vector<int> order(g.n);
+    iota(order.begin(), order.end(), 0);
+    shuffle(order.begin(), order.end(), mt19937(787788));  // Magic
+    // 先匹配一遍
+    for (int i : order) {
+      if (mate[i] == -1) {
+        for (int id : g.g[i]) {
+          auto &e = g.edges[id];
+          int to = e.from ^ e.to ^ i;
+          if (mate[to] == -1) {
+            mate[i] = to;
+            mate[to] = i;
+            break;
+          }
+        }
+      }
+    }
+  };
+  greedy();  // 再瞎匹配一边，对未匹配点增广
+  for (int i = 0; i < g.n; i++) {
+    if (mate[i] == -1) {
+      bfs(i);
+    }
+  }
+  return mate;
+}
+${0}
+endsnippet
+
+snippet dinic
+template <typename T>
+class dinic {
+public:
+  flow_graph<T> &g;
+
+  vector<int> ptr;
+  vector<int> d;
+  vector<int> q;
+
+  dinic(flow_graph<T> &_g) : g(_g) {
+    ptr.resize(g.n);
+    d.resize(g.n);
+    q.resize(g.n);
+  }
+
+  bool expath() {
+    fill(d.begin(), d.end(), -1);
+    q[0] = g.fin;
+    d[g.fin] = 0;
+    int beg = 0, end = 1;
+    while (beg < end) {
+      int i = q[beg++];
+      for (int id : g.g[i]) {
+        const auto &e = g.edges[id];
+        const auto &back = g.edges[id ^ 1];
+        if (back.c - back.f > g.eps && d[e.to] == -1) {
+          d[e.to] = d[i] + 1;
+          if (e.to == g.st) {
+            return true;
+          }
+          q[end++] = e.to;
+        }
+      }
+    }
+    return false;
+  }
+   
+  T dfs(int v, T w) {
+    if (v == g.fin) {
+      return w;
+    }
+    int &j = ptr[v];
+    while (j >= 0) {
+      int id = g.g[v][j];
+      const auto &e = g.edges[id];
+      if (e.c - e.f > g.eps && d[e.to] == d[v] - 1) {
+        T t = dfs(e.to, min(e.c - e.f, w));
+        if (t > g.eps) {
+          g.edges[id].f += t;
+          g.edges[id ^ 1].f -= t;
+          return t;
+        }
+      }
+      j--;
+    }
+    return 0;
+  }
+
+  T max_flow() {
+    while (expath()) {
+      for (int i = 0; i < g.n; i++) {
+        ptr[i] = (int) g.g[i].size() - 1;
+      }
+      T big_add = 0;
+      while (true) {
+        T add = dfs(g.st, numeric_limits<T>::max());
+        if (add <= g.eps) {
+          break;
+        }
+        big_add += add;
+      }
+      if (big_add <= g.eps) {
+        break;
+      }
+      g.flow += big_add;
+    }
+    return g.flow;
+  }
+
+  vector<bool> min_cut() {
+    max_flow();
+    vector<bool> ret(g.n);
+    for (int i = 0; i < g.n; i++) {
+      ret[i] = (d[i] != -1);
+    }
+    return ret;
+  }
+};
+${0}
+endsnippet
+
+snippet flow_graph
+template <typename T>
+class flow_graph {
+ public:
+  static constexpr T eps = (T) 1e-9;
+ 
   struct edge {
     int from;
     int to;
-    T cost;
+    T c;
+    T f;
   };
+ 
+  vector<vector<int>> g;
   vector<edge> edges;
-  vector<vector<int> > g;
   int n;
-  function<bool(int)> ignore;
-
-  graph(int _n) : n(_n) {
+  int st;
+  int fin;
+  T flow;
+ 
+  flow_graph(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
+    assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
     g.resize(n);
-    ignore = nullptr;
+    flow = 0;
   }
-  
-  virtual int add(int from, int to, T cost) = 0;
-  virtual void set_ignore_edge_rule(const function<bool(int)> &f) {
-    ignore = f;
-  }
-  virtual void reset_ignore_edge_rule() { ignore = nullptr; }
-};
-
-${0}
-endsnippet
-
-snippet digraph "Directed Graph"
-template <typename T>
-class digraph : public graph<T> {
- public:
-  using graph<T>::edges;
-  using graph<T>::g;
-  using graph<T>::n;
-  using graph<T>::ignore;
-
-  digraph(int _n) : graph<T>(_n) {}
-  
-  int add(int from, int to, T cost = 1) {
-    assert(0 <= from && from < n && 0 <= to && to < n);
-    int id = (int)edges.size();
-    g[from].push_back(id);
-    edges.push_back({from, to, cost});
-    return id;
-  }
-  digraph<T> reverse() const {
-    digraph<T> rev(n);
-    for (auto &e : edges) {
-      rev.add(e.to, e.from, e.cost);
+ 
+  void clear_flow() {
+    for (const edge &e : edges) {
+      e.f = 0;
     }
-    if (ignore != nullptr) {
-      rev.set_ignore_edge_rule([&](int id) { return ignore(id); });
-    }
-    return rev;
+    flow = 0;
   }
-};
-
-${0}
-endsnippet
-
-snippet undigraph "Undirected Graph"
-template <typename T>
-class undigraph : public graph<T> {
- public:
-  using graph<T>::edges;
-  using graph<T>::g;
-  using graph<T>::n;
-
-  undigraph(int _n) : graph<T>(_n) {}
-  
-  int add(int from, int to, T cost = 1) {
+   
+  int add(int from, int to, T forward_cap, T backward_cap) {
     assert(0 <= from && from < n && 0 <= to && to < n);
-    int id = (int)edges.size();
+    int id = (int) edges.size();
     g[from].push_back(id);
-    g[to].push_back(id);
-    edges.push_back({from, to, cost});
+    edges.push_back({from, to, forward_cap, 0});
+    g[to].push_back(id + 1);
+    edges.push_back({to, from, backward_cap, 0});
     return id;
   }
 };
-
 ${0}
 endsnippet
 
-snippet dijkstra "Dijkstra"
+snippet hungaraian
+template<typename T>
+class hungarian {
+  public:
+  int n;
+  int m;
+  vector< vector<T> > a;
+  vector<T> u;
+  vector<T> v;
+  vector<int> pa;
+  vector<int> pb;
+  vector<int> way;
+  vector<T> minv;
+  vector<bool> used;
+  T inf;
+
+  hungarian(int _n, int _m) : n(_n), m(_m) {
+    assert(n <= m);
+    a = vector< vector<T> >(n, vector<T>(m));
+    u = vector<T>(n + 1);
+    v = vector<T>(m + 1);
+    pa = vector<int>(n + 1, -1);
+    pb = vector<int>(m + 1, -1);
+    way = vector<int>(m, -1);
+    minv = vector<T>(m);
+    used = vector<bool>(m + 1);
+    inf = numeric_limits<T>::max();
+  }
+
+  inline void add_row(int i) {
+    fill(minv.begin(), minv.end(), inf);
+    fill(used.begin(), used.end(), false);
+    pb[m] = i;
+    pa[i] = m;
+    int j0 = m;
+    do {
+      used[j0] = true;
+      int i0 = pb[j0];
+      T delta = inf;
+      int j1 = -1;
+      for (int j = 0; j < m; j++) {
+        if (!used[j]) {
+          T cur = a[i0][j] - u[i0] - v[j];
+          if (cur < minv[j]) {
+            minv[j] = cur;
+            way[j] = j0;
+          }
+          if (minv[j] < delta) {
+            delta = minv[j];
+            j1 = j;
+          }
+        }
+      }
+      for (int j = 0; j <= m; j++) {
+        if (used[j]) {
+          u[pb[j]] += delta;
+          v[j] -= delta;
+        } else {
+          minv[j] -= delta;
+        }
+      }
+      j0 = j1;
+    } while (pb[j0] != -1);
+    do {
+      int j1 = way[j0];
+      pb[j0] = pb[j1];
+      pa[pb[j0]] = j0;
+      j0 = j1;
+    } while (j0 != m);
+  }
+
+  inline T current_score() {
+    return -v[m];
+  }
+
+  inline T solve() {
+    for (int i = 0; i < n; i++) {
+      add_row(i);
+    }
+    return current_score();
+  }
+};
+${0}
+endsnippet
+
+snippet matching
+class matching {
+ public:
+  vector<vector<int>> g;
+  vector<int> pa;
+  vector<int> pb;
+  vector<int> was;
+  int n, m;
+  int res;
+  int iter;
+
+  matching(int _n, int _m) : n(_n), m(_m) {
+    assert(0 <= n && 0 <= m);
+    pa = vector<int>(n, -1);
+    pb = vector<int>(m, -1);
+    was = vector<int>(n, 0);
+    g.resize(n);
+    res = 0;
+    iter = 0;
+  }
+  
+  void add(int from, int to) {
+    assert(0 <= from && from < n && 0 <= to && to < m);
+    g[from].push_back(to);
+  }
+  bool dfs(int v) {
+    was[v] = iter;
+    for (int u : g[v]) {
+      if (pb[u] == -1) {
+        pa[v] = u;
+        pb[u] = v;
+        return true;
+      }
+    }
+    for (int u : g[v]) {
+      if (was[pb[u]] != iter && dfs(pb[u])) {
+        pa[v] = u;
+        pb[u] = v;
+        return true;
+      }
+    }
+    return false;
+  }
+  int solve() {
+    while (true) {
+      iter++;
+      int add = 0;
+      for (int i = 0; i < n; i++) {
+        if (pa[i] == -1 && dfs(i)) {
+          add++;
+        }
+      }
+      if (add == 0) {
+        break;
+      }
+      res += add;
+    }
+    return res;
+  }
+  int run_one(int v) {
+    if (pa[v] != -1) {
+      return 0;
+    }
+    iter++;
+    return (int)dfs(v);
+  }
+};
+${0}
+endsnippet
+
+snippet mcmf
+template <typename T, typename C>
+class mcmf {
+  public:
+  static constexpr T eps = (T) 1e-9;
+
+  struct edge {
+    int from;
+    int to;
+    T c;
+    T f;
+    C cost;
+  };
+
+  vector< vector<int> > g;
+  vector<edge> edges;
+  vector<C> d;
+  vector<int> q;
+  vector<bool> in_queue;
+  vector<int> pe;
+  int n;
+  int st, fin;
+  T flow;
+  C cost;
+
+  mcmf(int _n, int _st, int _fin) : n(_n), st(_st), fin(_fin) {
+    assert(0 <= st && st < n && 0 <= fin && fin < n && st != fin);
+    g.resize(n);
+    d.resize(n);
+    in_queue.resize(n);
+    pe.resize(n);
+    flow = 0;
+    cost = 0;
+  }
+
+  void clear_flow() {
+    for (const edge &e : edges) {
+      e.f = 0;
+    }
+    flow = 0;
+  }
+   
+  void add(int from, int to, T forward_cap, T backward_cap, C cost) {
+    assert(0 <= from && from < n && 0 <= to && to < n);
+    g[from].push_back((int) edges.size());
+    edges.push_back({from, to, forward_cap, 0, cost});
+    g[to].push_back((int) edges.size());
+    edges.push_back({to, from, backward_cap, 0, -cost});
+  }
+
+  bool expath() {
+    fill(d.begin(), d.end(), numeric_limits<C>::max());
+    q.clear();
+    q.push_back(st);
+    d[st] = 0;
+    in_queue[st] = true;
+    int beg = 0;
+    bool found = false;
+    while (beg < (int) q.size()) {
+      int i = q[beg++];
+      if (i == fin) {
+        found = true;
+      }
+      in_queue[i] = false;
+      for (int id : g[i]) {
+        const edge &e = edges[id];
+        if (e.c - e.f > eps && d[i] + e.cost < d[e.to]) {
+          d[e.to] = d[i] + e.cost;
+          pe[e.to] = id;
+          if (!in_queue[e.to]) {
+            q.push_back(e.to);
+            in_queue[e.to] = true;
+          }
+        }
+      }
+    }
+    if (found) {
+      T push = numeric_limits<T>::max();
+      int v = fin;
+      while (v != st) {
+        const edge &e = edges[pe[v]];
+        push = min(push, e.c - e.f);
+        v = e.from;
+      }
+      v = fin;
+      while (v != st) {
+        edge &e = edges[pe[v]];
+        e.f += push;
+        edge &back = edges[pe[v] ^ 1];
+        back.f -= push;
+        v = e.from;
+      }
+      flow += push;
+      cost += push * d[fin];
+    }
+    return found;
+  }
+   
+  pair<T, C> max_flow_min_cost() {
+    while (expath()) {
+    }
+    return make_pair(flow, cost);
+  }
+};
+${0}
+endsnippet
+
+snippet mcmf_deprecated
+#include <bits/extc++.h>
+ 
+template <typename T, typename C>
+class MCMF {
+ public:
+  static constexpr T eps = (T) 1e-9;
+ 
+  struct edge {
+    int from;
+    int to;
+    T c;
+    T f;
+    C cost;
+  };
+ 
+  int n;
+  vector<vector<int>> g;
+  vector<edge> edges;
+  vector<C> d;
+  vector<C> pot;
+  __gnu_pbds::priority_queue<pair<C, int>> q;
+  vector<typename decltype(q)::point_iterator> its;
+  vector<int> pe;
+  const C INF_C = numeric_limits<C>::max() / 2;
+ 
+  explicit MCMF(int n_) : n(n_), g(n), d(n), pot(n, 0), its(n), pe(n) {}
+ 
+  int add(int from, int to, T forward_cap, T backward_cap, C edge_cost) {
+    assert(0 <= from && from < n && 0 <= to && to < n);
+    assert(forward_cap >= 0 && backward_cap >= 0);
+    int id = static_cast<int>(edges.size());
+    g[from].push_back(id);
+    edges.push_back({from, to, forward_cap, 0, edge_cost});
+    g[to].push_back(id + 1);
+    edges.push_back({to, from, backward_cap, 0, -edge_cost});
+    return id;
+  }
+ 
+  void expath(int st) {
+    fill(d.begin(), d.end(), INF_C);
+    q.clear();
+    fill(its.begin(), its.end(), q.end());
+    its[st] = q.push({pot[st], st});
+    d[st] = 0;
+    while (!q.empty()) {
+      int i = q.top().second;
+      q.pop();
+      its[i] = q.end();
+      for (int id : g[i]) {
+        const edge &e = edges[id];
+        int j = e.to;
+        if (e.c - e.f > eps && d[i] + e.cost < d[j]) {
+          d[j] = d[i] + e.cost;
+          pe[j] = id;
+          if (its[j] == q.end()) {
+            its[j] = q.push({pot[j] - d[j], j});
+          } else {
+            q.modify(its[j], {pot[j] - d[j], j});
+          }
+        }
+      }
+    }
+    swap(d, pot);
+  }
+   
+  pair<T, C> max_flow_min_cost(int st, int fin) {
+    T flow = 0;
+    C cost = 0;
+    bool ok = true;
+    for (auto& e : edges) {
+      if (e.c - e.f > eps && e.cost + pot[e.from] - pot[e.to] < 0) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) {
+      expath(st);
+    } else {
+      vector<int> deg(n, 0);
+      for (int i = 0; i < n; i++) {
+        for (int eid : g[i]) {
+          auto& e = edges[eid];
+          if (e.c - e.f > eps) {
+            deg[e.to] += 1;
+          }
+        }
+      }
+      vector<int> que;
+      for (int i = 0; i < n; i++) {
+        if (deg[i] == 0) {
+          que.push_back(i);
+        }
+      }
+      for (int b = 0; b < (int) que.size(); b++) {
+        for (int eid : g[que[b]]) {
+          auto& e = edges[eid];
+          if (e.c - e.f > eps) {
+            deg[e.to] -= 1;
+            if (deg[e.to] == 0) {
+              que.push_back(e.to);
+            }
+          }
+        }
+      }
+      fill(pot.begin(), pot.end(), INF_C);
+      pot[st] = 0;
+      if (static_cast<int>(que.size()) == n) {
+        for (int v : que) {
+          if (pot[v] < INF_C) {
+            for (int eid : g[v]) {
+              auto& e = edges[eid];
+              if (e.c - e.f > eps) {
+                if (pot[v] + e.cost < pot[e.to]) {
+                  pot[e.to] = pot[v] + e.cost;
+                  pe[e.to] = eid;
+                }
+              }
+            }
+          }
+        }
+      } else {
+        que.assign(1, st);
+        vector<bool> in_queue(n, false);
+        in_queue[st] = true;
+        for (int b = 0; b < (int) que.size(); b++) {
+          int i = que[b];
+          in_queue[i] = false;
+          for (int id : g[i]) {
+            const edge &e = edges[id];
+            if (e.c - e.f > eps && pot[i] + e.cost < pot[e.to]) {
+              pot[e.to] = pot[i] + e.cost;
+              pe[e.to] = id;
+              if (!in_queue[e.to]) {
+                que.push_back(e.to);
+                in_queue[e.to] = true;
+              }
+            }
+          }
+        }
+      }
+    }
+    debug(pot[fin]);
+    while (pot[fin] < 0) {
+      T push = numeric_limits<T>::max();
+      int v = fin;
+      while (v != st) {
+        const edge &e = edges[pe[v]];
+        push = min(push, e.c - e.f);
+        v = e.from;
+      }
+      v = fin;
+      while (v != st) {
+        edge &e = edges[pe[v]];
+        e.f += push;
+        edge &back = edges[pe[v] ^ 1];
+        back.f -= push;
+        v = e.from;
+      }
+      flow += push;
+      cost += push * pot[fin];
+      expath(st);
+    }
+    return {flow, cost};
+  }
+};
+${0}
+endsnippet
+
+snippet bicon_e
 template <typename T>
-vector<T> dijkstra(const graph<T> &g, int start) {
-  assert(0 <= start && start < g.n);
-  vector<T> dist(g.n, numeric_limits<T>::max());
-  priority_queue<pair<T, int>, vector<pair<T, int> >, greater<pair<T, int> > > s;
-  dist[start] = 0;
-  s.emplace(dist[start], start);
-  while (!s.empty()) {
-    T expected = s.top().first;
-    int i = s.top().second;
-    s.pop();
-    if (dist[i] != expected) {
+vector<int> find_bicone(dfs_undigraph<T> &g, int &cnt) {
+  g.dfs_all();
+  vector<int> vertex_comp(g.n);
+  cnt = 0;
+  for (int i : g.order) {
+    if (g.pv[i] == -1 || g.min_depth[i] == g.depth[i]) {
+      vertex_comp[i] = cnt++;
+    } else {
+      vertex_comp[i] = vertex_comp[g.pv[i]];
+    }
+  }
+  return vertex_comp;
+}
+${0}
+endsnippet
+
+snippet bicon_v
+template <typename T>
+vector<int> find_biconv(dfs_undigraph<T> &g, int &cnt) {
+  g.dfs_all();
+  vector<int> vertex_comp(g.n);
+  cnt = 0;
+  for (int i : g.order) {
+    if (g.pv[i] == -1) {
+      vertex_comp[i] = -1;
       continue;
     }
-    for (int id : g.g[i]) {
-      if (g.ignore != nullptr && g.ignore(id)) {
-        continue;
-      }
-      auto &e = g.edges[id];
-      int to = e.from ^ e.to ^ i;
-      if (dist[i] + e.cost < dist[to]) {
-        dist[to] = dist[i] + e.cost;
-        s.emplace(dist[to], to);
-      }
+    if (g.min_depth[i] >= g.depth[g.pv[i]]) {
+      vertex_comp[i] = cnt++;
+    } else {
+      vertex_comp[i] = vertex_comp[g.pv[i]];
     }
   }
-  return dist;
-  // returns numeric_limits<T>::max() if there's no path
-}
-
-${0}
-endsnippet
-
-snippet forest "Forest"
-template <typename T>
-class forest : public graph<T> {
- public:
-  using graph<T>::edges;
-  using graph<T>::g;
-  using graph<T>::n;
-
-  forest(int _n) : graph<T>(_n) {}
-
-  int add(int from, int to, T cost = 1) {
-    assert(0 <= from && from < n && 0 <= to && to < n);
-    int id = (int)edges.size();
-    assert(id < n - 1);
-    g[from].push_back(id);
-    g[to].push_back(id);
-    edges.push_back({from, to, cost});
-    return id;
+  vector<int> edge_comp(g.edges.size(), -1);
+  for (int id = 0; id < (int) g.edges.size(); id++) {
+    if (g.ignore != nullptr && g.ignore(id)) {
+      continue;
+    }
+    int x = g.edges[id].from;
+    int y = g.edges[id].to;
+    int z = (g.depth[x] > g.depth[y] ? x : y);
+    edge_comp[id] = vertex_comp[z];
   }
-};
-
+  return edge_comp;
+}
 ${0}
 endsnippet
 
-snippet dfs_undigraph "DFS Undirected Graph"
+snippet bridges
+template <typename T>
+vector<bool> find_bridges(dfs_undigraph<T> &g) {
+  g.dfs_all();
+  vector<bool> bridge(g.edges.size(), false);
+  for (int i = 0; i < g.n; i++) {
+    if (g.pv[i] != -1 && g.min_depth[i] == g.depth[i]) {
+      bridge[g.pe[i]] = true;
+    }
+  }
+  return bridge;
+}
+${0}
+endsnippet
+
+snippet cut
+template <typename T>
+vector<bool> find_cutpoints(dfs_undigraph<T> &g) {
+  g.dfs_all();
+  vector<bool> cutpoint(g.n, false);
+  for (int i = 0; i < g.n; i++) {
+    if (g.pv[i] != -1 && g.min_depth[i] >= g.depth[g.pv[i]]) {
+      cutpoint[g.pv[i]] = true;
+    }
+  }
+  vector<int> children(g.n, 0);
+  for (int i = 0; i < g.n; i++) {
+    if (g.pv[i] != -1) {
+      children[g.pv[i]]++;
+    }
+  }
+  for (int i = 0; i < g.n; i++) {
+    if (g.pv[i] == -1 && children[i] < 2) {
+      cutpoint[i] = false;
+    }
+  }
+  return cutpoint;
+}
+${0}
+endsnippet
+
+snippet dfs_undigraph
 template <typename T>
 class dfs_undigraph : public undigraph<T> {
  public:
@@ -1060,11 +1596,579 @@ class dfs_undigraph : public undigraph<T> {
     assert((int)order.size() == n);
   }
 };
-
 ${0}
 endsnippet
 
-snippet twosat "Two Sat"
+snippet digraph
+template <typename T>
+class digraph : public graph<T> {
+ public:
+  using graph<T>::edges;
+  using graph<T>::g;
+  using graph<T>::n;
+  using graph<T>::ignore;
+
+  digraph(int _n) : graph<T>(_n) {}
+  
+  int add(int from, int to, T cost = 1) {
+    assert(0 <= from && from < n && 0 <= to && to < n);
+    int id = (int)edges.size();
+    g[from].push_back(id);
+    edges.push_back({from, to, cost});
+    return id;
+  }
+  digraph<T> reverse() const {
+    digraph<T> rev(n);
+    for (auto &e : edges) {
+      rev.add(e.to, e.from, e.cost);
+    }
+    if (ignore != nullptr) {
+      rev.set_ignore_edge_rule([&](int id) { return ignore(id); });
+    }
+    return rev;
+  }
+};
+${0}
+endsnippet
+
+snippet dijkstra
+template <typename T>
+vector<T> dijkstra(const graph<T> &g, int start) {
+  assert(0 <= start && start < g.n);
+  vector<T> dist(g.n, numeric_limits<T>::max());
+  priority_queue<pair<T, int>, vector<pair<T, int> >, greater<pair<T, int> > > s;
+  dist[start] = 0;
+  s.emplace(dist[start], start);
+  while (!s.empty()) {
+    T expected = s.top().first;
+    int i = s.top().second;
+    s.pop();
+    if (dist[i] != expected) {
+      continue;
+    }
+    for (int id : g.g[i]) {
+      if (g.ignore != nullptr && g.ignore(id)) {
+        continue;
+      }
+      auto &e = g.edges[id];
+      int to = e.from ^ e.to ^ i;
+      if (dist[i] + e.cost < dist[to]) {
+        dist[to] = dist[i] + e.cost;
+        s.emplace(dist[to], to);
+      }
+    }
+  }
+  return dist;
+  // returns numeric_limits<T>::max() if there's no path
+}
+${0}
+endsnippet
+
+snippet eulerian
+template <typename T>
+vector<int> find_eulerian_path(const graph<T> &g, int &root) {
+  // in_deg and out_deg are useless for undigraph
+  vector<int> in_deg(g.n, 0);
+  vector<int> out_deg(g.n, 0);
+  int cnt_edges = 0;
+  for (int id = 0; id < (int) g.edges.size(); id++) {
+    if (g.ignore != nullptr && g.ignore(id)) {
+      continue;
+    }
+    cnt_edges++;
+    auto &e = g.edges[id];
+    out_deg[e.from]++;
+    in_deg[e.to]++;
+  }
+  root = -1;
+  int odd = 0;
+  for (int i = 0; i < g.n; i++) {
+    if ((in_deg[i] + out_deg[i]) % 2 == 1) {
+      odd++;
+      if (root == -1 || out_deg[i] - in_deg[i] > out_deg[root] - in_deg[root]) {
+        root = i;
+      }
+    }
+  }
+  if (odd > 2) {  
+    root = -1;
+    return vector<int>();
+  }
+  if (root == -1) {
+    root = 0;
+    while (root < g.n && in_deg[root] + out_deg[root] == 0) {
+      root++;
+    }
+    if (root == g.n) {
+      // an empty path
+      root = 0;
+      return vector<int>();
+    }
+  }
+  vector<bool> used(g.edges.size(), false);
+  vector<int> ptr(g.n, 0);
+  vector<int> balance(g.n, 0);
+  vector<int> res(cnt_edges);
+  int stack_ptr = 0;
+  int write_ptr = cnt_edges;
+  int v = root;
+
+  while (true) {
+    bool found = false;
+    while (ptr[v] < (int) g.g[v].size()) {
+      int id = g.g[v][ptr[v]++];
+      if (used[id] || (g.ignore != nullptr && g.ignore(id))) {
+        continue;
+      }
+      used[id] = true;
+      res[stack_ptr++] = id;
+      auto &e = g.edges[id];
+      balance[v]++;
+      v ^= e.from ^ e.to;
+      balance[v]--;
+      found = true;
+      break;
+    }
+    if (!found) {
+      if (stack_ptr == 0) {
+        break;
+      }
+      int id = res[--stack_ptr];
+      res[--write_ptr] = id;
+      auto &e = g.edges[id];
+      v ^= e.from ^ e.to;
+    }
+  }
+  int disbalance = 0;
+  for (int i = 0; i < g.n; i++) {
+    disbalance += abs(balance[i]);
+  }
+  if (write_ptr != 0 || disbalance > 2) {
+    root = -1;
+    return vector<int>();
+  }
+  return res;
+  // returns edge ids in the path (or the cycle if it exists)
+  // root == -1 if there is no path
+  // (or res.empty(), but this is also true when there are no edges)
+}
+${0}
+endsnippet
+
+snippet find_cycles
+template <typename T>
+vector<vector<int>> find_cycles(const graph<T> &g, int bound = 1 << 30) {
+  vector<int> was(g.n, -1);
+  vector<int> st;
+  vector<vector<int>> cycles;
+  function<void(int, int)> dfs = [&g, &was, &st, &cycles, &dfs, &bound](int v, int pe) {
+    if ((int) cycles.size() >= bound) {
+      return;
+    }
+    was[v] = st.size();
+    for (int id : g.g[v]) {
+      if (id == pe) {
+        continue;
+      }
+      auto &e = g.edges[id];
+      int to = e.from ^ e.to ^ v;
+      if (was[to] >= 0) {
+        vector<int> cycle(1, id);
+        for (int j = was[to]; j < (int) st.size(); j++) {
+          cycle.push_back(st[j]);
+        }
+        cycles.push_back(cycle);
+        if ((int) cycles.size() >= bound) {
+          return;
+        }
+        continue;
+      }
+      if (was[to] == -1) {
+        st.push_back(id);
+        dfs(to, id);
+        st.pop_back();
+      }
+    }
+    was[v] = -2;
+  };
+  for (int i = 0; i < g.n; i++) {
+    if (was[i] == -1) {
+      dfs(i, -1);
+    }
+  }
+  return cycles;
+  // cycles are given by edge ids, all cycles are simple
+  // returns at most bound cycles (given by edge ids)
+  // digraph: finds at least one cycle in every connected component
+  // undigraph: finds cycle basis
+}
+${0}
+endsnippet
+
+snippet find_topsort
+template <typename T>
+vector<int> find_topsort(const digraph<T> &g) {
+  vector<int> deg(g.n, 0);
+  for (int id = 0; id < (int) g.edges.size(); id++) {
+    if (g.ignore != nullptr && g.ignore(id)) {
+      continue;
+    }
+    deg[g.edges[id].to]++;
+  }
+  vector<int> x;
+  for (int i = 0; i < g.n; i++) {
+    if (deg[i] == 0) {
+      x.push_back(i);
+    }
+  }
+  for (int ptr = 0; ptr < (int) x.size(); ptr++) {
+    int i = x[ptr];
+    for (int id : g.g[i]) {
+      if (g.ignore != nullptr && g.ignore(id)) {
+        continue;
+      }
+      auto &e = g.edges[id];
+      int to = e.to;
+      if (--deg[to] == 0) {
+        x.push_back(to);
+      }
+    }
+  }
+  if ((int) x.size() != g.n) {
+    return vector<int>();
+  }
+  return x;
+}
+${0}
+endsnippet
+
+snippet forest
+template <typename T>
+class forest : public graph<T> {
+ public:
+  using graph<T>::edges;
+  using graph<T>::g;
+  using graph<T>::n;
+
+  forest(int _n) : graph<T>(_n) {}
+
+  int add(int from, int to, T cost = 1) {
+    assert(0 <= from && from < n && 0 <= to && to < n);
+    int id = (int)edges.size();
+    assert(id < n - 1);
+    g[from].push_back(id);
+    g[to].push_back(id);
+    edges.push_back({from, to, cost});
+    return id;
+  }
+};
+${0}
+endsnippet
+
+snippet graph
+template <typename T>
+class graph {
+ public:
+  struct edge {
+    int from;
+    int to;
+    T cost;
+  };
+  vector<edge> edges;
+  vector<vector<int> > g;
+  int n;
+  function<bool(int)> ignore;
+
+  graph(int _n) : n(_n) {
+    g.resize(n);
+    ignore = nullptr;
+  }
+  
+  virtual int add(int from, int to, T cost) = 0;
+  virtual void set_ignore_edge_rule(const function<bool(int)> &f) {
+    ignore = f;
+  }
+  virtual void reset_ignore_edge_rule() { ignore = nullptr; }
+};
+${0}
+endsnippet
+
+snippet hld_forest
+template <typename T>
+class hld_forest : public lca_forest<T> {
+ public:
+  using lca_forest<T>::edges;
+  using lca_forest<T>::g;
+  using lca_forest<T>::n;
+  using lca_forest<T>::pv;
+  using lca_forest<T>::sz;
+  using lca_forest<T>::pos;
+  using lca_forest<T>::order;
+  using lca_forest<T>::depth;
+  using lca_forest<T>::dfs;
+  using lca_forest<T>::dfs_all;
+  using lca_forest<T>::lca;
+  using lca_forest<T>::build_lca;
+
+  vector<int> head;
+  vector<int> visited;
+
+  hld_forest(int _n) : lca_forest<T>(_n) {
+    visited.resize(n);
+  }
+
+  void build_hld(const vector<int> &vs) {
+    for (int tries = 0; tries < 2; tries++) {
+      if (vs.empty()) {
+        dfs_all();
+      } else {
+        order.clear();
+        for (int v : vs) {
+//          assert(depth[v] == -1); careful..
+          dfs(v, false);
+        }
+        assert((int) order.size() == n);
+      }
+      if (tries == 1) {
+        break;
+      }
+      for (int i = 0; i < n; i++) {
+        if (g[i].empty()) {
+          continue;
+        }
+        int best = -1, bid = 0;
+        for (int j = 0; j < (int) g[i].size(); j++) {
+          int id = g[i][j];
+          if (ignore != nullptr && ignore(id)) {
+            continue;
+          }
+          int v = edges[id].from ^ edges[id].to ^ i;
+          if (pv[v] != i) {
+            continue;
+          }
+          if (sz[v] > best) {
+            best = sz[v];
+            bid = j;
+          }
+        }
+        swap(g[i][0], g[i][bid]);
+      }
+    }
+    build_lca();
+    head.resize(n);
+    for (int i = 0; i < n; i++) {
+      head[i] = i;
+    }
+    for (int i = 0; i < n - 1; i++) {
+      int x = order[i];
+      int y = order[i + 1];
+      if (pv[y] == x) {
+        head[y] = head[x];
+      }
+    }
+  }
+
+  void build_hld(int v) {
+    build_hld(vector<int>(1, v));
+  }
+
+  void build_hld_all() {
+    build_hld(vector<int>());
+  }
+/*
+  vector<pair<int, int>> get_path(int x, int y) {
+    vector< pair<int, int> > path[2];
+    int z = lca(x, y);
+    for (int id = 0; id < 2; id++) {
+      int v = (id == 0 ? x : y);
+      while (v != z) {
+        if (depth[head[v]] <= depth[z]) {
+          path[id].emplace_back(pos[z] + 1, pos[v]);
+          break;
+        }
+        path[id].emplace_back(pos[head[v]], pos[v]);
+        v = pv[head[v]];
+      }
+    }
+    vector<pair<int, int>> ret;
+    for (int i = 0; i < (int) path[0].size(); i++) {
+      ret.emplace_back(path[0][i].second, path[0][i].first);
+    }
+    ret.emplace_back(-1, pos[z]);
+    for (int i = (int) path[1].size() - 1; i >= 0; i--) {
+      ret.push_back(path[1][i]);
+    }
+    return ret;
+    // returns segments of the path:
+    //   first from x to lca, reversed segments
+    //   then (-1, pos[lca])
+    //   then from lca to y, direct segments
+    // but in most cases, apply_on_path should be enough
+  }
+*/
+
+  bool apply_on_path(int x, int y, bool with_lca, function<void(int,int,bool)> f) {
+    // f(x, y, up): up -- whether this part of the path goes up
+    assert(!head.empty());
+    int z = lca(x, y);
+    if (z == -1) {
+      return false;
+    }
+    {
+      int v = x;
+      while (v != z) {
+        if (depth[head[v]] <= depth[z]) {
+          f(pos[z] + 1, pos[v], true);
+          break;
+        }
+        f(pos[head[v]], pos[v], true);
+        v = pv[head[v]];
+      }
+    }
+    if (with_lca) {
+      f(pos[z], pos[z], false);
+    }
+    {
+      int v = y;
+      int cnt_visited = 0;
+      while (v != z) {
+        if (depth[head[v]] <= depth[z]) {
+          f(pos[z] + 1, pos[v], false);
+          break;
+        }
+        visited[cnt_visited++] = v;
+        v = pv[head[v]];
+      }
+      for (int at = cnt_visited - 1; at >= 0; at--) {
+        v = visited[at];
+        f(pos[head[v]], pos[v], false);
+      }
+    }
+    return true;
+  }
+};
+${0}
+endsnippet
+
+snippet lca_forest
+template <typename T>
+class lca_forest : public dfs_forest<T> {
+ public:
+  using dfs_forest<T>::edges;
+  using dfs_forest<T>::g;
+  using dfs_forest<T>::n;
+  using dfs_forest<T>::pv;
+  using dfs_forest<T>::pos;
+  using dfs_forest<T>::end;
+  using dfs_forest<T>::depth;
+
+  int h;
+  vector<vector<int> > pr;
+  
+  lca_forest(int _n) : dfs_forest<T>(_n) {}
+
+  inline void build_lca() {
+    assert(!pv.empty());
+    int max_depth = 0;
+    for (int i = 0; i < n; i++) {
+      max_depth = max(max_depth, depth[i]);
+    }
+    h = 1;
+    while ((1 << h) <= max_depth) {
+      h++;
+    }
+    pr.resize(n);
+    for (int i = 0; i < n; i++) {
+      pr[i].resize(h);
+      pr[i][0] = pv[i];
+    }
+    for (int j = 1; j < h; j++) {
+      for (int i = 0; i < n; i++) {
+        pr[i][j] = (pr[i][j - 1] == -1 ? -1 : pr[pr[i][j - 1]][j - 1]);
+      }
+    }
+  }
+  inline bool anc(int x, int y) {
+    return (pos[x] <= pos[y] && end[y] <= end[x]);
+  }
+  inline int lca(int x, int y) {
+    // maybe
+    // if depth[x] > depth[y], swap
+    // then go from j = log(depth[x])?
+    assert(!pr.empty());
+    if (anc(x, y)) {
+      return x;
+    }
+    if (anc(y, x)) {
+      return y;
+    }
+    for (int j = h - 1; j >= 0; j--) {
+      if (pr[x][j] != -1 && !anc(pr[x][j], y)) {
+        x = pr[x][j];
+      }
+    }
+    return pr[x][0];
+  }
+};
+${0}
+endsnippet
+
+snippet scc
+template <typename T>
+vector<int> find_scc(const digraph<T> &g, int &cnt) {
+  digraph<T> g_rev = g.reverse();
+  vector<int> order;
+  vector<bool> was(g.n, false);
+  function<void(int)> dfs1 = [&](int v) {
+    was[v] = true;
+    for (int id : g.g[v]) {
+      if (g.ignore != nullptr && g.ignore(id)) {
+        continue;
+      }
+      auto &e = g.edges[id];
+      int to = e.to;
+      if (!was[to]) {
+        dfs1(to);
+      }
+    }
+    order.push_back(v);
+  };
+  for (int i = 0; i < g.n; i++) {
+    if (!was[i]) {
+      dfs1(i);
+    }
+  }
+  vector<int> c(g.n, -1);
+  function<void(int)> dfs2 = [&](int v) {
+    for (int id : g_rev.g[v]) {
+      if (g_rev.ignore != nullptr && g_rev.ignore(id)) {
+        continue;
+      }
+      auto &e = g_rev.edges[id];
+      int to = e.to;
+      if (c[to] == -1) {
+        c[to] = c[v];
+        dfs2(to);
+      }
+    }
+  };
+  cnt = 0;
+  // Kosaraju 
+  for (int id = g.n - 1; id >= 0; id--) {
+    int i = order[id];
+    if (c[i] != -1) {
+      continue;
+    }
+    c[i] = cnt++;
+    dfs2(i);
+  }
+  return c;
+  // c[i] <= c[j] for every edge i -> j
+}
+${0}
+endsnippet
+
+snippet twosat
 class twosat {
  public:
   digraph<int> g;
@@ -1099,82 +2203,259 @@ class twosat {
     return res;
   }
 };
-
 ${0}
 endsnippet
 
-snippet matching
-class matching {
+snippet undigraph
+template <typename T>
+class undigraph : public graph<T> {
  public:
-  vector<vector<int>> g;
-  vector<int> pa;
-  vector<int> pb;
-  vector<int> was;
-  int n, m;
-  int res;
-  int iter;
+  using graph<T>::edges;
+  using graph<T>::g;
+  using graph<T>::n;
 
-  matching(int _n, int _m) : n(_n), m(_m) {
-    assert(0 <= n && 0 <= m);
-    pa = vector<int>(n, -1);
-    pb = vector<int>(m, -1);
-    was = vector<int>(n, 0);
-    g.resize(n);
-    res = 0;
-    iter = 0;
-  }
+  undigraph(int _n) : graph<T>(_n) {}
   
-  void add(int from, int to) {
-    assert(0 <= from && from < n && 0 <= to && to < m);
-    g[from].push_back(to);
-  }
-  bool dfs(int v) {
-    was[v] = iter;
-    for (int u : g[v]) {
-      if (pb[u] == -1) {
-        pa[v] = u;
-        pb[u] = v;
-        return true;
-      }
-    }
-    for (int u : g[v]) {
-      if (was[pb[u]] != iter && dfs(pb[u])) {
-        pa[v] = u;
-        pb[u] = v;
-        return true;
-      }
-    }
-    return false;
-  }
-  int solve() {
-    while (true) {
-      iter++;
-      int add = 0;
-      for (int i = 0; i < n; i++) {
-        if (pa[i] == -1 && dfs(i)) {
-          add++;
-        }
-      }
-      if (add == 0) {
-        break;
-      }
-      res += add;
-    }
-    return res;
-  }
-  int run_one(int v) {
-    if (pa[v] != -1) {
-      return 0;
-    }
-    iter++;
-    return (int)dfs(v);
+  int add(int from, int to, T cost = 1) {
+    assert(0 <= from && from < n && 0 <= to && to < n);
+    int id = (int)edges.size();
+    g[from].push_back(id);
+    g[to].push_back(id);
+    edges.push_back({from, to, cost});
+    return id;
   }
 };
-
 ${0}
 endsnippet
 
-snippet exgcd "Extend GCD"
+snippet fastio
+static struct FastInput {
+  static constexpr int BUF_SIZE = 1 << 20;
+  char buf[BUF_SIZE];
+  size_t chars_read = 0;
+  size_t buf_pos = 0;
+  FILE *in = stdin;
+  char cur = 0;
+ 
+  inline char get_char() {
+    if (buf_pos >= chars_read) {
+      chars_read = fread(buf, 1, BUF_SIZE, in);
+      buf_pos = 0;
+      buf[0] = (chars_read == 0 ? -1 : buf[0]);
+    }
+    return cur = buf[buf_pos++];
+  }
+ 
+  inline void tie(int) {}
+ 
+  inline explicit operator bool() {
+    return cur != -1;
+  }
+ 
+  inline static bool is_blank(char c) {
+    return c <= ' ';
+  }
+ 
+  inline bool skip_blanks() {
+    while (is_blank(cur) && cur != -1) {
+      get_char();
+    }
+    return cur != -1;
+  }
+ 
+  inline FastInput& operator>>(char& c) {
+    skip_blanks();
+    c = cur;
+    return *this;
+  }
+  
+  inline FastInput& operator>>(string& s) {
+    if (skip_blanks()) {
+      s.clear();
+      do {
+        s += cur;
+      } while (!is_blank(get_char()));
+    }
+    return *this;
+  }
+ 
+  template <typename T>
+  inline FastInput& read_integer(T& n) {
+    // unsafe, doesn't check that characters are actually digits
+    n = 0;
+    if (skip_blanks()) {
+      int sign = +1;
+      if (cur == '-') {
+        sign = -1;
+        get_char();
+      }
+      do {
+        n += n + (n << 3) + cur - '0';
+      } while (!is_blank(get_char()));
+      n *= sign;
+    }
+    return *this;
+  }
+ 
+  template <typename T>
+  inline typename enable_if<is_integral<T>::value, FastInput&>::type operator>>(T& n) {
+    return read_integer(n);
+  }
+  
+  #if !defined(_WIN32) || defined(_WIN64)
+  inline FastInput& operator>>(__int128& n) {
+    return read_integer(n);
+  }
+  #endif
+ 
+  template <typename T>
+  inline typename enable_if<is_floating_point<T>::value, FastInput&>::type operator>>(T& n) {
+    // not sure if really fast, for compatibility only
+    n = 0;
+    if (skip_blanks()) {
+      string s;
+      (*this) >> s;
+      sscanf(s.c_str(), "%lf", &n);
+    }
+    return *this;
+  }
+} fast_input;
+ 
+#define cin fast_input
+ 
+static struct FastOutput {
+  static constexpr int BUF_SIZE = 1 << 20;
+  char buf[BUF_SIZE];
+  size_t buf_pos = 0;
+  static constexpr int TMP_SIZE = 1 << 20;
+  char tmp[TMP_SIZE];
+  FILE *out = stdout;
+ 
+  inline void put_char(char c) {
+    buf[buf_pos++] = c;
+    if (buf_pos == BUF_SIZE) {
+      fwrite(buf, 1, buf_pos, out);
+      buf_pos = 0;
+    }
+  }
+ 
+  ~FastOutput() {
+    fwrite(buf, 1, buf_pos, out);
+  }
+ 
+  inline FastOutput& operator<<(char c) {
+    put_char(c);
+    return *this;
+  }
+ 
+  inline FastOutput& operator<<(const char* s) {
+    while (*s) {
+      put_char(*s++);
+    }
+    return *this;
+  }
+ 
+  inline FastOutput& operator<<(const string& s) {
+    for (int i = 0; i < (int) s.size(); i++) {
+      put_char(s[i]);
+    }
+    return *this;
+  }
+ 
+  template <typename T>
+  inline char* integer_to_string(T n) {
+    // beware of TMP_SIZE
+    char* p = tmp + TMP_SIZE - 1;
+    if (n == 0) {
+      *--p = '0';
+    } else {
+      bool is_negative = false;
+      if (n < 0) {
+        is_negative = true;
+        n = -n;
+      }
+      while (n > 0) {
+        *--p = (char) ('0' + n % 10);
+        n /= 10;
+      }
+      if (is_negative) {
+        *--p = '-';
+      }
+    }
+    return p;
+  }
+ 
+  template <typename T>
+  inline typename enable_if<is_integral<T>::value, char*>::type stringify(T n) {
+    return integer_to_string(n);
+  }
+ 
+  #if !defined(_WIN32) || defined(_WIN64)
+  inline char* stringify(__int128 n) {
+    return integer_to_string(n);
+  }
+  #endif
+ 
+  template <typename T>
+  inline typename enable_if<is_floating_point<T>::value, char*>::type stringify(T n) {
+    sprintf(tmp, "%.17f", n);
+    return tmp;
+  }
+ 
+  template <typename T>
+  inline FastOutput& operator<<(const T& n) {
+    auto p = stringify(n);
+    for (; *p != 0; p++) {
+      put_char(*p);
+    }
+    return *this;
+  }
+} fast_output;
+ 
+#define cout fast_output
+${0}
+endsnippet
+
+snippet rng
+mt19937 rng((unsigned int) chrono::steady_clock::now().time_since_epoch().count());
+${0}
+endsnippet
+
+snippet crt
+template <typename T>
+void crt(const vector<int>& p, const vector<int>& a, T& res) {
+  assert(p.size() == a.size());
+  auto inverse = [&](int q, int m) {
+    q %= m;
+    if (q < 0) q += m;
+    int b = m, u = 0, v = 1;
+    while (q) {
+      int t = b / q;
+      b -= t * q; swap(q, b);
+      u -= t * v; swap(u, v);
+    }
+    assert(b == 1);
+    if (u < 0) u += m;
+    return u;
+  };
+  vector<int> x(p.size());
+  for (int i = 0; i < (int) p.size(); i++) {
+    assert(0 <= a[i] && a[i] < p[i]);
+    x[i] = a[i];
+    for (int j = 0; j < i; j++) {
+      x[i] = (int) ((long long) (x[i] - x[j]) * inverse(p[j], p[i]) % p[i]);
+      if (x[i] < 0) x[i] += p[i];
+    }
+  }
+  res = 0;
+  for (int i = (int) p.size() - 1; i >= 0; i--) {
+    res = res * p[i] + x[i];
+  }
+}
+${0}
+endsnippet
+
+snippet exgcd
 template <typename T>
 T extgcd(T a, T b, T &x, T &y) {
   if (a == 0) {
@@ -1246,11 +2527,10 @@ bool crt(long long k1, long long m1, long long k2, long long m2, long long &k,
   assert(0 <= k && k < m);
   return true;
 }
-
 ${0}
 endsnippet
 
-snippet fft "Fast Fourier Transform"
+snippet fft
 // make it understandable one day...
 // this is sophisticated as f..
 namespace fft {
@@ -1493,885 +2773,10 @@ typename enable_if<is_same<typename Modular<T>::Type, int>::value,
 operator*=(vector<Modular<T>>& a, const vector<Modular<T>>& b) {
   return a = a * b;
 }
-
 ${0}
 endsnippet
 
-snippet poly "Polynomial Operations"
-template <typename T>
-vector<T>& operator+=(vector<T>& a, const vector<T>& b) {
-  if (a.size() < b.size()) {
-    a.resize(b.size());
-  }
-  for (int i = 0; i < (int)b.size(); i++) {
-    a[i] += b[i];
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator+(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c += b;
-}
-
-template <typename T>
-vector<T>& operator-=(vector<T>& a, const vector<T>& b) {
-  if (a.size() < b.size()) {
-    a.resize(b.size());
-  }
-  for (int i = 0; i < (int)b.size(); i++) {
-    a[i] -= b[i];
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator-(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c -= b;
-}
-
-template <typename T>
-vector<T> operator-(const vector<T>& a) {
-  vector<T> c = a;
-  for (int i = 0; i < (int)c.size(); i++) {
-    c[i] = -c[i];
-  }
-  return c;
-}
-
-template <typename T>
-vector<T> operator*(const vector<T>& a, const vector<T>& b) {
-  if (a.empty() || b.empty()) {
-    return {};
-  }
-  vector<T> c(a.size() + b.size() - 1, 0);
-  for (int i = 0; i < (int)a.size(); i++) {
-    for (int j = 0; j < (int)b.size(); j++) {
-      c[i + j] += a[i] * b[j];
-    }
-  }
-  return c;
-}
-
-template <typename T>
-vector<T>& operator*=(vector<T>& a, const vector<T>& b) {
-  return a = a * b;
-}
-
-template <typename T>
-vector<T> inverse(const vector<T>& a) {
-  assert(!a.empty());
-  int n = (int)a.size();
-  vector<T> b = {1 / a[0]};
-  while ((int)b.size() < n) {
-    vector<T> a_cut(a.begin(), a.begin() + min(a.size(), b.size() << 1));
-    vector<T> x = b * b * a_cut;
-    b.resize(b.size() << 1);
-    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
-      b[i] = -x[i];
-    }
-  }
-  b.resize(n);
-  return b;
-}
-
-template <typename T>
-vector<T>& operator/=(vector<T>& a, const vector<T>& b) {
-  int n = (int)a.size();
-  int m = (int)b.size();
-  if (n < m) {
-    a.clear();
-  } else {
-    vector<T> d = b;
-    reverse(a.begin(), a.end());
-    reverse(d.begin(), d.end());
-    d.resize(n - m + 1);
-    a *= inverse(d);
-    a.erase(a.begin() + n - m + 1, a.end());
-    reverse(a.begin(), a.end());
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator/(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c /= b;
-}
-
-template <typename T>
-vector<T>& operator%=(vector<T>& a, const vector<T>& b) {
-  int n = (int)a.size();
-  int m = (int)b.size();
-  if (n >= m) {
-    vector<T> c = (a / b) * b;
-    a.resize(m - 1);
-    for (int i = 0; i < m - 1; i++) {
-      a[i] -= c[i];
-    }
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator%(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c %= b;
-}
-
-template <typename T, typename U>
-vector<T> power(const vector<T>& a, const U& b, const vector<T>& c) {
-  assert(b >= 0);
-  vector<U> binary;
-  U bb = b;
-  while (bb > 0) {
-    binary.push_back(bb & 1);
-    bb >>= 1;
-  }
-  vector<T> res = vector<T>{1} % c;
-  for (int j = (int)binary.size() - 1; j >= 0; j--) {
-    res = res * res % c;
-    if (binary[j] == 1) {
-      res = res * a % c;
-    }
-  }
-  return res;
-}
-
-template <typename T>
-vector<T> derivative(const vector<T>& a) {
-  vector<T> c = a;
-  for (int i = 0; i < (int)c.size(); i++) {
-    c[i] *= i;
-  }
-  if (!c.empty()) {
-    c.erase(c.begin());
-  }
-  return c;
-}
-
-template <typename T>
-vector<T> primitive(const vector<T>& a) {
-  vector<T> c = a;
-  c.insert(c.begin(), 0);
-  for (int i = 1; i < (int)c.size(); i++) {
-    c[i] /= i;
-  }
-  return c;
-}
-
-template <typename T>
-vector<T> logarithm(const vector<T>& a) {
-  assert(!a.empty() && a[0] == 1);
-  vector<T> u = primitive(derivative(a) * inverse(a));
-  u.resize(a.size());
-  return u;
-}
-
-template <typename T>
-vector<T> exponent(const vector<T>& a) {
-  assert(!a.empty() && a[0] == 0);
-  int n = (int)a.size();
-  vector<T> b = {1};
-  while ((int)b.size() < n) {
-    vector<T> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
-    x[0] += 1;
-    vector<T> old_b = b;
-    b.resize(b.size() << 1);
-    x -= logarithm(b);
-    x *= old_b;
-    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
-      b[i] = x[i];
-    }
-  }
-  b.resize(n);
-  return b;
-}
-
-template <typename T>
-vector<T> sqrt(const vector<T>& a) {
-  assert(!a.empty() && a[0] == 1);
-  int n = (int)a.size();
-  vector<T> b = {1};
-  while ((int)b.size() < n) {
-    vector<T> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
-    b.resize(b.size() << 1);
-    x *= inverse(b);
-    T inv2 = 1 / static_cast<T>(2);
-    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
-      b[i] = x[i] * inv2;
-    }
-  }
-  b.resize(n);
-  return b;
-}
-
-template <typename T>
-vector<T> multiply(const vector<vector<T>>& a) {
-  if (a.empty()) {
-    return {0};
-  }
-  function<vector<T>(int, int)> mult = [&](int l, int r) {
-    if (l == r) {
-      return a[l];
-    }
-    int y = (l + r) >> 1;
-    return mult(l, y) * mult(y + 1, r);
-  };
-  return mult(0, (int)a.size() - 1);
-}
-
-template <typename T>
-T evaluate(const vector<T>& a, const T& x) {
-  T res = 0;
-  for (int i = (int)a.size() - 1; i >= 0; i--) {
-    res = res * x + a[i];
-  }
-  return res;
-}
-
-template <typename T>
-vector<T> evaluate(const vector<T>& a, const vector<T>& x) {
-  if (x.empty()) {
-    return {};
-  }
-  if (a.empty()) {
-    return vector<T>(x.size(), 0);
-  }
-  int n = (int)x.size();
-  vector<vector<T>> st((n << 1) - 1);
-  function<void(int, int, int)> build = [&](int v, int l, int r) {
-    if (l == r) {
-      st[v] = vector<T>{-x[l], 1};
-    } else {
-      int y = (l + r) >> 1;
-      int z = v + ((y - l + 1) << 1);
-      build(v + 1, l, y);
-      build(z, y + 1, r);
-      st[v] = st[v + 1] * st[z];
-    }
-  };
-  build(0, 0, n - 1);
-  vector<T> res(n);
-  function<void(int, int, int, vector<T>)> eval = [&](int v, int l, int r,
-                                                      vector<T> f) {
-    f %= st[v];
-    if ((int)f.size() < 150) {
-      for (int i = l; i <= r; i++) {
-        res[i] = evaluate(f, x[i]);
-      }
-      return;
-    }
-    if (l == r) {
-      res[l] = f[0];
-    } else {
-      int y = (l + r) >> 1;
-      int z = v + ((y - l + 1) << 1);
-      eval(v + 1, l, y, f);
-      eval(z, y + 1, r, f);
-    }
-  };
-  eval(0, 0, n - 1, a);
-  return res;
-}
-
-template <typename T>
-vector<T> interpolate(const vector<T>& x, const vector<T>& y) {
-  if (x.empty()) {
-    return {};
-  }
-  assert(x.size() == y.size());
-  int n = (int)x.size();
-  vector<vector<T>> st((n << 1) - 1);
-  function<void(int, int, int)> build = [&](int v, int l, int r) {
-    if (l == r) {
-      st[v] = vector<T>{-x[l], 1};
-    } else {
-      int w = (l + r) >> 1;
-      int z = v + ((w - l + 1) << 1);
-      build(v + 1, l, w);
-      build(z, w + 1, r);
-      st[v] = st[v + 1] * st[z];
-    }
-  };
-  build(0, 0, n - 1);
-  vector<T> m = st[0];
-  vector<T> dm = derivative(m);
-  vector<T> val(n);
-  function<void(int, int, int, vector<T>)> eval = [&](int v, int l, int r,
-                                                      vector<T> f) {
-    f %= st[v];
-    if ((int)f.size() < 150) {
-      for (int i = l; i <= r; i++) {
-        val[i] = evaluate(f, x[i]);
-      }
-      return;
-    }
-    if (l == r) {
-      val[l] = f[0];
-    } else {
-      int w = (l + r) >> 1;
-      int z = v + ((w - l + 1) << 1);
-      eval(v + 1, l, w, f);
-      eval(z, w + 1, r, f);
-    }
-  };
-  eval(0, 0, n - 1, dm);
-  for (int i = 0; i < n; i++) {
-    val[i] = y[i] / val[i];
-  }
-  function<vector<T>(int, int, int)> calc = [&](int v, int l, int r) {
-    if (l == r) {
-      return vector<T>{val[l]};
-    }
-    int w = (l + r) >> 1;
-    int z = v + ((w - l + 1) << 1);
-    return calc(v + 1, l, w) * st[z] + calc(z, w + 1, r) * st[v + 1];
-  };
-  return calc(0, 0, n - 1);
-}
-// f[i] = 1^i + 2^i + ... + up^i
-
-template <typename T>
-vector<T> faulhaber(const T& up, int n) {
-  vector<T> ex(n + 1);
-  T e = 1;
-  for (int i = 0; i <= n; i++) {
-    ex[i] = e;
-    e /= i + 1;
-  }
-  vector<T> den = ex;
-  den.erase(den.begin());
-  for (auto& d : den) {
-    d = -d;
-  }
-  vector<T> num(n);
-  T p = 1;
-  for (int i = 0; i < n; i++) {
-    p *= up + 1;
-    num[i] = ex[i + 1] * (1 - p);
-  }
-  vector<T> res = num * inverse(den);
-  res.resize(n);
-  T f = 1;
-  for (int i = 0; i < n; i++) {
-    res[i] *= f;
-    f *= i + 1;
-  }
-  return res;
-}
-// (x + 1) * (x + 2) * ... * (x + n)
-// (can be optimized with precomputed inverses)
-
-template <typename T>
-vector<T> sequence(int n) {
-  if (n == 0) {
-    return {1};
-  }
-  if (n % 2 == 1) {
-    return sequence<T>(n - 1) * vector<T>{n, 1};
-  }
-  vector<T> c = sequence<T>(n / 2);
-  vector<T> a = c;
-  reverse(a.begin(), a.end());
-  T f = 1;
-  for (int i = n / 2 - 1; i >= 0; i--) {
-    f *= n / 2 - i;
-    a[i] *= f;
-  }
-  vector<T> b(n / 2 + 1);
-  b[0] = 1;
-  for (int i = 1; i <= n / 2; i++) {
-    b[i] = b[i - 1] * (n / 2) / i;
-  }
-  vector<T> h = a * b;
-  h.resize(n / 2 + 1);
-  reverse(h.begin(), h.end());
-  f = 1;
-  for (int i = 1; i <= n / 2; i++) {
-    f /= i;
-    h[i] *= f;
-  }
-  vector<T> res = c * h;
-  return res;
-}
-
-template <typename T>
-class OnlineProduct {
- public:
-  const vector<T> a;
-  vector<T> b;
-  vector<T> c;
-
-  OnlineProduct(const vector<T>& a_) : a(a_) {}
-
-  T add(const T& val) {
-    int i = (int)b.size();
-    b.push_back(val);
-    if ((int)c.size() <= i) {
-      c.resize(i + 1);
-    }
-    c[i] += a[0] * b[i];
-    int z = 1;
-    while ((i & (z - 1)) == z - 1 && (int)a.size() > z) {
-      vector<T> a_mul(a.begin() + z, a.begin() + min(z << 1, (int)a.size()));
-      vector<T> b_mul(b.end() - z, b.end());
-      vector<T> c_mul = a_mul * b_mul;
-      if ((int)c.size() <= i + (int)c_mul.size()) {
-        c.resize(i + c_mul.size() + 1);
-      }
-      for (int j = 0; j < (int)c_mul.size(); j++) {
-        c[i + 1 + j] += c_mul[j];
-      }
-      z <<= 1;
-    }
-    return c[i];
-  }
-};
-
-${0}
-endsnippet
-
-snippet ntt "Number Theoretic Transform"
-template <typename T>
-vector<T>& operator+=(vector<T>& a, const vector<T>& b) {
-  if (a.size() < b.size()) {
-    a.resize(b.size());
-  }
-  for (int i = 0; i < (int)b.size(); i++) {
-    a[i] += b[i];
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator+(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c += b;
-}
-
-template <typename T>
-vector<T>& operator-=(vector<T>& a, const vector<T>& b) {
-  if (a.size() < b.size()) {
-    a.resize(b.size());
-  }
-  for (int i = 0; i < (int)b.size(); i++) {
-    a[i] -= b[i];
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator-(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c -= b;
-}
-
-template <typename T>
-vector<T> operator-(const vector<T>& a) {
-  vector<T> c = a;
-  for (int i = 0; i < (int)c.size(); i++) {
-    c[i] = -c[i];
-  }
-  return c;
-}
-
-template <typename T>
-vector<T> operator*(const vector<T>& a, const vector<T>& b) {
-  if (a.empty() || b.empty()) {
-    return {};
-  }
-  vector<T> c(a.size() + b.size() - 1, 0);
-  for (int i = 0; i < (int)a.size(); i++) {
-    for (int j = 0; j < (int)b.size(); j++) {
-      c[i + j] += a[i] * b[j];
-    }
-  }
-  return c;
-}
-
-template <typename T>
-vector<T>& operator*=(vector<T>& a, const vector<T>& b) {
-  return a = a * b;
-}
-
-template <typename T>
-vector<T> inverse(const vector<T>& a) {
-  assert(!a.empty());
-  int n = (int)a.size();
-  vector<T> b = {1 / a[0]};
-  while ((int)b.size() < n) {
-    vector<T> a_cut(a.begin(), a.begin() + min(a.size(), b.size() << 1));
-    vector<T> x = b * b * a_cut;
-    b.resize(b.size() << 1);
-    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
-      b[i] = -x[i];
-    }
-  }
-  b.resize(n);
-  return b;
-}
-
-template <typename T>
-vector<T>& operator/=(vector<T>& a, const vector<T>& b) {
-  int n = (int)a.size();
-  int m = (int)b.size();
-  if (n < m) {
-    a.clear();
-  } else {
-    vector<T> d = b;
-    reverse(a.begin(), a.end());
-    reverse(d.begin(), d.end());
-    d.resize(n - m + 1);
-    a *= inverse(d);
-    a.erase(a.begin() + n - m + 1, a.end());
-    reverse(a.begin(), a.end());
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator/(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c /= b;
-}
-
-template <typename T>
-vector<T>& operator%=(vector<T>& a, const vector<T>& b) {
-  int n = (int)a.size();
-  int m = (int)b.size();
-  if (n >= m) {
-    vector<T> c = (a / b) * b;
-    a.resize(m - 1);
-    for (int i = 0; i < m - 1; i++) {
-      a[i] -= c[i];
-    }
-  }
-  return a;
-}
-
-template <typename T>
-vector<T> operator%(const vector<T>& a, const vector<T>& b) {
-  vector<T> c = a;
-  return c %= b;
-}
-
-template <typename T, typename U>
-vector<T> power(const vector<T>& a, const U& b, const vector<T>& c) {
-  assert(b >= 0);
-  vector<U> binary;
-  U bb = b;
-  while (bb > 0) {
-    binary.push_back(bb & 1);
-    bb >>= 1;
-  }
-  vector<T> res = vector<T>{1} % c;
-  for (int j = (int)binary.size() - 1; j >= 0; j--) {
-    res = res * res % c;
-    if (binary[j] == 1) {
-      res = res * a % c;
-    }
-  }
-  return res;
-}
-
-template <typename T>
-vector<T> derivative(const vector<T>& a) {
-  vector<T> c = a;
-  for (int i = 0; i < (int)c.size(); i++) {
-    c[i] *= i;
-  }
-  if (!c.empty()) {
-    c.erase(c.begin());
-  }
-  return c;
-}
-
-template <typename T>
-vector<T> primitive(const vector<T>& a) {
-  vector<T> c = a;
-  c.insert(c.begin(), 0);
-  for (int i = 1; i < (int)c.size(); i++) {
-    c[i] /= i;
-  }
-  return c;
-}
-
-template <typename T>
-vector<T> logarithm(const vector<T>& a) {
-  assert(!a.empty() && a[0] == 1);
-  vector<T> u = primitive(derivative(a) * inverse(a));
-  u.resize(a.size());
-  return u;
-}
-
-template <typename T>
-vector<T> exponent(const vector<T>& a) {
-  assert(!a.empty() && a[0] == 0);
-  int n = (int)a.size();
-  vector<T> b = {1};
-  while ((int)b.size() < n) {
-    vector<T> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
-    x[0] += 1;
-    vector<T> old_b = b;
-    b.resize(b.size() << 1);
-    x -= logarithm(b);
-    x *= old_b;
-    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
-      b[i] = x[i];
-    }
-  }
-  b.resize(n);
-  return b;
-}
-
-template <typename T>
-vector<T> sqrt(const vector<T>& a) {
-  assert(!a.empty() && a[0] == 1);
-  int n = (int)a.size();
-  vector<T> b = {1};
-  while ((int)b.size() < n) {
-    vector<T> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
-    b.resize(b.size() << 1);
-    x *= inverse(b);
-    T inv2 = 1 / static_cast<T>(2);
-    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
-      b[i] = x[i] * inv2;
-    }
-  }
-  b.resize(n);
-  return b;
-}
-
-template <typename T>
-vector<T> multiply(const vector<vector<T>>& a) {
-  if (a.empty()) {
-    return {0};
-  }
-  function<vector<T>(int, int)> mult = [&](int l, int r) {
-    if (l == r) {
-      return a[l];
-    }
-    int y = (l + r) >> 1;
-    return mult(l, y) * mult(y + 1, r);
-  };
-  return mult(0, (int)a.size() - 1);
-}
-
-template <typename T>
-T evaluate(const vector<T>& a, const T& x) {
-  T res = 0;
-  for (int i = (int)a.size() - 1; i >= 0; i--) {
-    res = res * x + a[i];
-  }
-  return res;
-}
-
-template <typename T>
-vector<T> evaluate(const vector<T>& a, const vector<T>& x) {
-  if (x.empty()) {
-    return {};
-  }
-  if (a.empty()) {
-    return vector<T>(x.size(), 0);
-  }
-  int n = (int)x.size();
-  vector<vector<T>> st((n << 1) - 1);
-  function<void(int, int, int)> build = [&](int v, int l, int r) {
-    if (l == r) {
-      st[v] = vector<T>{-x[l], 1};
-    } else {
-      int y = (l + r) >> 1;
-      int z = v + ((y - l + 1) << 1);
-      build(v + 1, l, y);
-      build(z, y + 1, r);
-      st[v] = st[v + 1] * st[z];
-    }
-  };
-  build(0, 0, n - 1);
-  vector<T> res(n);
-  function<void(int, int, int, vector<T>)> eval = [&](int v, int l, int r,
-                                                      vector<T> f) {
-    f %= st[v];
-    if ((int)f.size() < 150) {
-      for (int i = l; i <= r; i++) {
-        res[i] = evaluate(f, x[i]);
-      }
-      return;
-    }
-    if (l == r) {
-      res[l] = f[0];
-    } else {
-      int y = (l + r) >> 1;
-      int z = v + ((y - l + 1) << 1);
-      eval(v + 1, l, y, f);
-      eval(z, y + 1, r, f);
-    }
-  };
-  eval(0, 0, n - 1, a);
-  return res;
-}
-
-template <typename T>
-vector<T> interpolate(const vector<T>& x, const vector<T>& y) {
-  if (x.empty()) {
-    return {};
-  }
-  assert(x.size() == y.size());
-  int n = (int)x.size();
-  vector<vector<T>> st((n << 1) - 1);
-  function<void(int, int, int)> build = [&](int v, int l, int r) {
-    if (l == r) {
-      st[v] = vector<T>{-x[l], 1};
-    } else {
-      int w = (l + r) >> 1;
-      int z = v + ((w - l + 1) << 1);
-      build(v + 1, l, w);
-      build(z, w + 1, r);
-      st[v] = st[v + 1] * st[z];
-    }
-  };
-  build(0, 0, n - 1);
-  vector<T> m = st[0];
-  vector<T> dm = derivative(m);
-  vector<T> val(n);
-  function<void(int, int, int, vector<T>)> eval = [&](int v, int l, int r,
-                                                      vector<T> f) {
-    f %= st[v];
-    if ((int)f.size() < 150) {
-      for (int i = l; i <= r; i++) {
-        val[i] = evaluate(f, x[i]);
-      }
-      return;
-    }
-    if (l == r) {
-      val[l] = f[0];
-    } else {
-      int w = (l + r) >> 1;
-      int z = v + ((w - l + 1) << 1);
-      eval(v + 1, l, w, f);
-      eval(z, w + 1, r, f);
-    }
-  };
-  eval(0, 0, n - 1, dm);
-  for (int i = 0; i < n; i++) {
-    val[i] = y[i] / val[i];
-  }
-  function<vector<T>(int, int, int)> calc = [&](int v, int l, int r) {
-    if (l == r) {
-      return vector<T>{val[l]};
-    }
-    int w = (l + r) >> 1;
-    int z = v + ((w - l + 1) << 1);
-    return calc(v + 1, l, w) * st[z] + calc(z, w + 1, r) * st[v + 1];
-  };
-  return calc(0, 0, n - 1);
-}
-// f[i] = 1^i + 2^i + ... + up^i
-
-template <typename T>
-vector<T> faulhaber(const T& up, int n) {
-  vector<T> ex(n + 1);
-  T e = 1;
-  for (int i = 0; i <= n; i++) {
-    ex[i] = e;
-    e /= i + 1;
-  }
-  vector<T> den = ex;
-  den.erase(den.begin());
-  for (auto& d : den) {
-    d = -d;
-  }
-  vector<T> num(n);
-  T p = 1;
-  for (int i = 0; i < n; i++) {
-    p *= up + 1;
-    num[i] = ex[i + 1] * (1 - p);
-  }
-  vector<T> res = num * inverse(den);
-  res.resize(n);
-  T f = 1;
-  for (int i = 0; i < n; i++) {
-    res[i] *= f;
-    f *= i + 1;
-  }
-  return res;
-}
-// (x + 1) * (x + 2) * ... * (x + n)
-// (can be optimized with precomputed inverses)
-
-template <typename T>
-vector<T> sequence(int n) {
-  if (n == 0) {
-    return {1};
-  }
-  if (n % 2 == 1) {
-    return sequence<T>(n - 1) * vector<T>{n, 1};
-  }
-  vector<T> c = sequence<T>(n / 2);
-  vector<T> a = c;
-  reverse(a.begin(), a.end());
-  T f = 1;
-  for (int i = n / 2 - 1; i >= 0; i--) {
-    f *= n / 2 - i;
-    a[i] *= f;
-  }
-  vector<T> b(n / 2 + 1);
-  b[0] = 1;
-  for (int i = 1; i <= n / 2; i++) {
-    b[i] = b[i - 1] * (n / 2) / i;
-  }
-  vector<T> h = a * b;
-  h.resize(n / 2 + 1);
-  reverse(h.begin(), h.end());
-  f = 1;
-  for (int i = 1; i <= n / 2; i++) {
-    f /= i;
-    h[i] *= f;
-  }
-  vector<T> res = c * h;
-  return res;
-}
-
-template <typename T>
-class OnlineProduct {
- public:
-  const vector<T> a;
-  vector<T> b;
-  vector<T> c;
-
-  OnlineProduct(const vector<T>& a_) : a(a_) {}
-
-  T add(const T& val) {
-    int i = (int)b.size();
-    b.push_back(val);
-    if ((int)c.size() <= i) {
-      c.resize(i + 1);
-    }
-    c[i] += a[0] * b[i];
-    int z = 1;
-    while ((i & (z - 1)) == z - 1 && (int)a.size() > z) {
-      vector<T> a_mul(a.begin() + z, a.begin() + min(z << 1, (int)a.size()));
-      vector<T> b_mul(b.end() - z, b.end());
-      vector<T> c_mul = a_mul * b_mul;
-      if ((int)c.size() <= i + (int)c_mul.size()) {
-        c.resize(i + c_mul.size() + 1);
-      }
-      for (int j = 0; j < (int)c_mul.size(); j++) {
-        c[i + 1 + j] += c_mul[j];
-      }
-      z <<= 1;
-    }
-    return c[i];
-  }
-};
-
-${0}
-endsnippet
-
-snippet gaussian "Gaussian Elimination"
+snippet gaussian_elimination
 const double eps = 1e-9;
 
 bool IsZero(double v) {
@@ -2480,200 +2885,1063 @@ vector<T> SolveLinearSystem(vector<vector<T>> a, const vector<T>& b, int w) {
   }
   return x;
 }
-
 ${0}
 endsnippet
 
-snippet rng
-mt19937 rng((unsigned int) chrono::steady_clock::now().time_since_epoch().count());
+snippet mint
+template <typename T>
+T inverse(T a, T m) {
+  T u = 0, v = 1;
+  while (a != 0) {
+    T t = m / a;
+    m -= t * a; swap(a, m);
+    u -= t * v; swap(u, v);
+  }
+  assert(m == 1);
+  return u;
+}
+  
+template <typename T>
+class Modular {
+  public:
+  using Type = typename decay<decltype(T::value)>::type;
+  
+  constexpr Modular() : value() {}
+  template <typename U>
+  Modular(const U& x) {
+    value = normalize(x);
+  }
+  
+  template <typename U>
+  static Type normalize(const U& x) {
+    Type v;
+    if (-mod() <= x && x < mod()) v = static_cast<Type>(x);
+    else v = static_cast<Type>(x % mod());
+    if (v < 0) v += mod();
+    return v;
+  }
+  
+  const Type& operator()() const { return value; }
+  template <typename U>
+  explicit operator U() const { return static_cast<U>(value); }
+  constexpr static Type mod() { return T::value; }
+  
+  Modular& operator+=(const Modular& other) { if ((value += other.value) >= mod()) value -= mod(); return *this; }
+  Modular& operator-=(const Modular& other) { if ((value -= other.value) < 0) value += mod(); return *this; }
+  template <typename U> Modular& operator+=(const U& other) { return *this += Modular(other); }
+  template <typename U> Modular& operator-=(const U& other) { return *this -= Modular(other); }
+  Modular& operator++() { return *this += 1; }
+  Modular& operator--() { return *this -= 1; }
+  Modular operator++(int) { Modular result(*this); *this += 1; return result; }
+  Modular operator--(int) { Modular result(*this); *this -= 1; return result; }
+  Modular operator-() const { return Modular(-value); }
+  
+  template <typename U = T>
+  typename enable_if<is_same<typename Modular<U>::Type, int>::value, Modular>::type& operator*=(const Modular& rhs) {
+#ifdef _WIN32
+    uint64_t x = static_cast<int64_t>(value) * static_cast<int64_t>(rhs.value);
+    uint32_t xh = static_cast<uint32_t>(x >> 32), xl = static_cast<uint32_t>(x), d, m;
+    asm(
+      "divl %4; \n\t"
+      : "=a" (d), "=d" (m)
+      : "d" (xh), "a" (xl), "r" (mod())
+    );
+    value = m;
+#else
+    value = normalize(static_cast<int64_t>(value) * static_cast<int64_t>(rhs.value));
+#endif
+    return *this;
+  }
+  template <typename U = T>
+  typename enable_if<is_same<typename Modular<U>::Type, long long>::value, Modular>::type& operator*=(const Modular& rhs) {
+    long long q = static_cast<long long>(static_cast<long double>(value) * rhs.value / mod());
+    value = normalize(value * rhs.value - q * mod());
+    return *this;
+  }
+  template <typename U = T>
+  typename enable_if<!is_integral<typename Modular<U>::Type>::value, Modular>::type& operator*=(const Modular& rhs) {
+    value = normalize(value * rhs.value);
+    return *this;
+  }
+  
+  Modular& operator/=(const Modular& other) { return *this *= Modular(inverse(other.value, mod())); }
+  
+  friend const Type& abs(const Modular& x) { return x.value; }
+  
+  template <typename U>
+  friend bool operator==(const Modular<U>& lhs, const Modular<U>& rhs);
+  
+  template <typename U>
+  friend bool operator<(const Modular<U>& lhs, const Modular<U>& rhs);
+  
+  template <typename V, typename U>
+  friend V& operator>>(V& stream, Modular<U>& number);
+  
+  private:
+  Type value;
+};
+  
+template <typename T> bool operator==(const Modular<T>& lhs, const Modular<T>& rhs) { return lhs.value == rhs.value; }
+template <typename T, typename U> bool operator==(const Modular<T>& lhs, U rhs) { return lhs == Modular<T>(rhs); }
+template <typename T, typename U> bool operator==(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) == rhs; }
+  
+template <typename T> bool operator!=(const Modular<T>& lhs, const Modular<T>& rhs) { return !(lhs == rhs); }
+template <typename T, typename U> bool operator!=(const Modular<T>& lhs, U rhs) { return !(lhs == rhs); }
+template <typename T, typename U> bool operator!=(U lhs, const Modular<T>& rhs) { return !(lhs == rhs); }
+  
+template <typename T> bool operator<(const Modular<T>& lhs, const Modular<T>& rhs) { return lhs.value < rhs.value; }
+  
+template <typename T> Modular<T> operator+(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) += rhs; }
+template <typename T, typename U> Modular<T> operator+(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) += rhs; }
+template <typename T, typename U> Modular<T> operator+(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) += rhs; }
+  
+template <typename T> Modular<T> operator-(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) -= rhs; }
+template <typename T, typename U> Modular<T> operator-(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) -= rhs; }
+template <typename T, typename U> Modular<T> operator-(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) -= rhs; }
+  
+template <typename T> Modular<T> operator*(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) *= rhs; }
+template <typename T, typename U> Modular<T> operator*(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) *= rhs; }
+template <typename T, typename U> Modular<T> operator*(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) *= rhs; }
+  
+template <typename T> Modular<T> operator/(const Modular<T>& lhs, const Modular<T>& rhs) { return Modular<T>(lhs) /= rhs; }
+template <typename T, typename U> Modular<T> operator/(const Modular<T>& lhs, U rhs) { return Modular<T>(lhs) /= rhs; }
+template <typename T, typename U> Modular<T> operator/(U lhs, const Modular<T>& rhs) { return Modular<T>(lhs) /= rhs; }
+  
+template<typename T, typename U>
+Modular<T> power(const Modular<T>& a, const U& b) {
+  assert(b >= 0);
+  Modular<T> x = a, res = 1;
+  U p = b;
+  while (p > 0) {
+    if (p & 1) res *= x;
+    x *= x;
+    p >>= 1;
+  }
+  return res;
+}
+  
+template <typename T>
+bool IsZero(const Modular<T>& number) {
+  return number() == 0;
+}
+  
+template <typename T>
+string to_string(const Modular<T>& number) {
+  return to_string(number());
+}
+  
+// U == std::ostream? but done this way because of fastoutput
+template <typename U, typename T>
+U& operator<<(U& stream, const Modular<T>& number) {
+  return stream << number();
+}
+  
+// U == std::istream? but done this way because of fastinput
+template <typename U, typename T>
+U& operator>>(U& stream, Modular<T>& number) {
+  typename common_type<typename Modular<T>::Type, long long>::type x;
+  stream >> x;
+  number.value = Modular<T>::normalize(x);
+  return stream;
+}
+  
+/*
+using ModType = int;
+  
+struct VarMod { static ModType value; };
+ModType VarMod::value;
+ModType& md = VarMod::value;
+using Mint = Modular<VarMod>;
+*/
+  
+constexpr int md = 998244353;
+using Mint = Modular<std::integral_constant<decay<decltype(md)>::type, md>>;
+  
+vector<Mint> fact(1, 1);
+vector<Mint> inv_fact(1, 1);
+  
+Mint C(int n, int k) {
+  if (k < 0 || k > n) {
+    return 0;
+  }
+  while ((int) fact.size() < n + 1) {
+    fact.push_back(fact.back() * (int) fact.size());
+    inv_fact.push_back(1 / fact.back());
+  }
+  return fact[n] * inv_fact[k] * inv_fact[n - k];
+}
 ${0}
 endsnippet
 
-snippet fastio
-static struct FastInput {
-  static constexpr int BUF_SIZE = 1 << 20;
-  char buf[BUF_SIZE];
-  size_t chars_read = 0;
-  size_t buf_pos = 0;
-  FILE *in = stdin;
-  char cur = 0;
+snippet ntt
+template <typename T>
+class NTT {
+ public:
+  using Type = typename decay<decltype(T::value)>::type;
+  static Type md;
+  static Modular<T> root;
+  static int base;
+  static int max_base;
+  static vector<Modular<T>> roots;
+  static vector<int> rev;
 
-  inline char get_char() {
-    if (buf_pos >= chars_read) {
-      chars_read = fread(buf, 1, BUF_SIZE, in);
-      buf_pos = 0;
-      buf[0] = (chars_read == 0 ? -1 : buf[0]);
+  static void clear() {
+    root = 0;
+    base = 0;
+    max_base = 0;
+    roots.clear();
+    rev.clear();
+  }
+  static void init() {
+    md = T::value;
+    assert(md >= 3 && md % 2 == 1);
+    auto tmp = md - 1;
+    max_base = 0;
+    while (tmp % 2 == 0) {
+      tmp /= 2;
+      max_base++;
     }
-    return cur = buf[buf_pos++];
-  }
-
-  inline void tie(int) {}
-
-  inline explicit operator bool() {
-    return cur != -1;
-  }
-
-  inline static bool is_blank(char c) {
-    return c <= ' ';
-  }
-
-  inline bool skip_blanks() {
-    while (is_blank(cur) && cur != -1) {
-      get_char();
+    root = 2;
+    while (power(root, (md - 1) >> 1) == 1) {
+      root++;
     }
-    return cur != -1;
+    assert(power(root, md - 1) == 1);
+    root = power(root, (md - 1) >> max_base);
+    base = 1;
+    rev = {0, 1};
+    roots = {0, 1};
   }
-
-  inline FastInput& operator>>(char& c) {
-    skip_blanks();
-    c = cur;
-    return *this;
-  }
-
-  inline FastInput& operator>>(string& s) {
-    if (skip_blanks()) {
-      s.clear();
-      do {
-        s += cur;
-      } while (!is_blank(get_char()));
+  static void ensure_base(int nbase) {
+    if (md != T::value) {
+      clear();
     }
-    return *this;
-  }
-
-  template <typename T>
-  inline FastInput& read_integer(T& n) {
-    // unsafe, doesn't check that characters are actually digits
-    n = 0;
-    if (skip_blanks()) {
-      int sign = +1;
-      if (cur == '-') {
-        sign = -1;
-        get_char();
+    if (roots.empty()) {
+      init();
+    }
+    if (nbase <= base) {
+      return;
+    }
+    assert(nbase <= max_base);
+    rev.resize(1 << nbase);
+    for (int i = 0; i < (1 << nbase); i++) {
+      rev[i] = (rev[i >> 1] >> 1) + ((i & 1) << (nbase - 1));
+    }
+    roots.resize(1 << nbase);
+    while (base < nbase) {
+      Modular<T> z = power(root, 1 << (max_base - 1 - base));
+      for (int i = 1 << (base - 1); i < (1 << base); i++) {
+        roots[i << 1] = roots[i];
+        roots[(i << 1) + 1] = roots[i] * z;
       }
-      do {
-        n += n + (n << 3) + cur - '0';
-      } while (!is_blank(get_char()));
-      n *= sign;
-    }
-    return *this;
-  }
-
-  template <typename T>
-  inline typename enable_if<is_integral<T>::value, FastInput&>::type operator>>(T& n) {
-    return read_integer(n);
-  }
-
-  #if !defined(_WIN32) || defined(_WIN64)
-  inline FastInput& operator>>(__int128& n) {
-    return read_integer(n);
-  }
-  #endif
-
-  template <typename T>
-  inline typename enable_if<is_floating_point<T>::value, FastInput&>::type operator>>(T& n) {
-    // not sure if really fast, for compatibility only
-    n = 0;
-    if (skip_blanks()) {
-      string s;
-      (*this) >> s;
-      sscanf(s.c_str(), "%lf", &n);
-    }
-    return *this;
-  }
-} fast_input;
-
-#define cin fast_input
-
-static struct FastOutput {
-  static constexpr int BUF_SIZE = 1 << 20;
-  char buf[BUF_SIZE];
-  size_t buf_pos = 0;
-  static constexpr int TMP_SIZE = 1 << 20;
-  char tmp[TMP_SIZE];
-  FILE *out = stdout;
-
-  inline void put_char(char c) {
-    buf[buf_pos++] = c;
-    if (buf_pos == BUF_SIZE) {
-      fwrite(buf, 1, buf_pos, out);
-      buf_pos = 0;
+      base++;
     }
   }
-
-  ~FastOutput() {
-    fwrite(buf, 1, buf_pos, out);
-  }
-
-  inline FastOutput& operator<<(char c) {
-    put_char(c);
-    return *this;
-  }
-
-  inline FastOutput& operator<<(const char* s) {
-    while (*s) {
-      put_char(*s++);
+  static void fft(vector<Modular<T>>& a) {
+    int n = (int)a.size();
+    assert((n & (n - 1)) == 0);
+    int zeros = __builtin_ctz(n);
+    ensure_base(zeros);
+    int shift = base - zeros;
+    for (int i = 0; i < n; i++) {
+      if (i < (rev[i] >> shift)) {
+        swap(a[i], a[rev[i] >> shift]);
+      }
     }
-    return *this;
-  }
-
-  inline FastOutput& operator<<(const string& s) {
-    for (int i = 0; i < (int) s.size(); i++) {
-      put_char(s[i]);
+    for (int k = 1; k < n; k <<= 1) {
+      for (int i = 0; i < n; i += 2 * k) {
+        for (int j = 0; j < k; j++) {
+          Modular<T> x = a[i + j];
+          Modular<T> y = a[i + j + k] * roots[j + k];
+          a[i + j] = x + y;
+          a[i + j + k] = x - y;
+        }
+      }
     }
-    return *this;
   }
+  static vector<Modular<T>> multiply(vector<Modular<T>> a,
+                                     vector<Modular<T>> b) {
+    if (a.empty() || b.empty()) {
+      return {};
+    }
+    int eq = (a == b);
+    int need = (int)a.size() + (int)b.size() - 1;
+    int nbase = 0;
+    while ((1 << nbase) < need) nbase++;
+    ensure_base(nbase);
+    int sz = 1 << nbase;
+    a.resize(sz);
+    b.resize(sz);
+    fft(a);
+    if (eq)
+      b = a;
+    else
+      fft(b);
+    Modular<T> inv_sz = 1 / static_cast<Modular<T>>(sz);
+    for (int i = 0; i < sz; i++) {
+      a[i] *= b[i] * inv_sz;
+    }
+    reverse(a.begin() + 1, a.end());
+    fft(a);
+    a.resize(need);
+    return a;
+  }
+};
 
-  template <typename T>
-  inline char* integer_to_string(T n) {
-    // beware of TMP_SIZE
-    char* p = tmp + TMP_SIZE - 1;
-    if (n == 0) {
-      *--p = '0';
+template <typename T> typename NTT<T>::Type NTT<T>::md;
+template <typename T> Modular<T> NTT<T>::root;
+template <typename T> int NTT<T>::base;
+template <typename T> int NTT<T>::max_base;
+template <typename T> vector<Modular<T>> NTT<T>::roots;
+template <typename T> vector<int> NTT<T>::rev;
+
+template <typename T>
+vector<Modular<T>> inverse(const vector<Modular<T>>& a) {
+  assert(!a.empty());
+  int n = (int)a.size();
+  vector<Modular<T>> b = {1 / a[0]};
+  while ((int)b.size() < n) {
+    vector<Modular<T>> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
+    x.resize(b.size() << 1);
+    b.resize(b.size() << 1);
+    vector<Modular<T>> c = b;
+    NTT<T>::fft(c);
+    NTT<T>::fft(x);
+    Modular<T> inv = 1 / static_cast<Modular<T>>((int)x.size());
+    for (int i = 0; i < (int)x.size(); i++) {
+      x[i] *= c[i] * inv;
+    }
+    reverse(x.begin() + 1, x.end());
+    NTT<T>::fft(x);
+    rotate(x.begin(), x.begin() + (x.size() >> 1), x.end());
+    fill(x.begin() + (x.size() >> 1), x.end(), 0);
+    NTT<T>::fft(x);
+    for (int i = 0; i < (int)x.size(); i++) {
+      x[i] *= c[i] * inv;
+    }
+    reverse(x.begin() + 1, x.end());
+    NTT<T>::fft(x);
+    for (int i = 0; i < ((int)x.size() >> 1); i++) {
+      b[i + ((int)x.size() >> 1)] = -x[i];
+    }
+  }
+  b.resize(n);
+  return b;
+}
+
+template <typename T>
+vector<Modular<T>> inverse_old(vector<Modular<T>> a) {
+  assert(!a.empty());
+  int n = (int)a.size();
+  if (n == 1) {
+    return {1 / a[0]};
+  }
+  int m = (n + 1) >> 1;
+  vector<Modular<T>> b = inverse(vector<Modular<T>>(a.begin(), a.begin() + m));
+  int need = n << 1;
+  int nbase = 0;
+  while ((1 << nbase) < need) {
+    ++nbase;
+  }
+  NTT<T>::ensure_base(nbase);
+  int size = 1 << nbase;
+  a.resize(size);
+  b.resize(size);
+  NTT<T>::fft(a);
+  NTT<T>::fft(b);
+  Modular<T> inv = 1 / static_cast<Modular<T>>(size);
+  for (int i = 0; i < size; ++i) {
+    a[i] = (2 - a[i] * b[i]) * b[i] * inv;
+  }
+  reverse(a.begin() + 1, a.end());
+  NTT<T>::fft(a);
+  a.resize(n);
+  return a;
+}
+
+template <typename T>
+vector<Modular<T>> operator*(const vector<Modular<T>>& a,
+                             const vector<Modular<T>>& b) {
+  if (a.empty() || b.empty()) {
+    return {};
+  }
+  if (min(a.size(), b.size()) < 150) {
+    vector<Modular<T>> c(a.size() + b.size() - 1, 0);
+    for (int i = 0; i < (int)a.size(); i++) {
+      for (int j = 0; j < (int)b.size(); j++) {
+        c[i + j] += a[i] * b[j];
+      }
+    }
+    return c;
+  }
+  return NTT<T>::multiply(a, b);
+}
+
+template <typename T>
+vector<Modular<T>>& operator*=(vector<Modular<T>>& a,
+                               const vector<Modular<T>>& b) {
+  return a = a * b;
+}
+
+template <typename T>
+vector<T>& operator+=(vector<T>& a, const vector<T>& b) {
+  if (a.size() < b.size()) {
+    a.resize(b.size());
+  }
+  for (int i = 0; i < (int) b.size(); i++) {
+    a[i] += b[i];
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator+(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c += b;
+}
+
+template <typename T>
+vector<T>& operator-=(vector<T>& a, const vector<T>& b) {
+  if (a.size() < b.size()) {
+    a.resize(b.size());
+  }
+  for (int i = 0; i < (int) b.size(); i++) {
+    a[i] -= b[i];
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator-(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c -= b;
+}
+
+template <typename T>
+vector<T> operator-(const vector<T>& a) {
+  vector<T> c = a;
+  for (int i = 0; i < (int) c.size(); i++) {
+    c[i] = -c[i];
+  }
+  return c;
+}
+
+template <typename T>
+vector<T> operator*(const vector<T>& a, const vector<T>& b) {
+  if (a.empty() || b.empty()) {
+    return {};
+  }
+  vector<T> c(a.size() + b.size() - 1, 0);
+  for (int i = 0; i < (int) a.size(); i++) {
+    for (int j = 0; j < (int) b.size(); j++) {
+      c[i + j] += a[i] * b[j];
+    }
+  }
+  return c;
+}
+
+template <typename T>
+vector<T>& operator*=(vector<T>& a, const vector<T>& b) {
+  return a = a * b;
+}
+
+template <typename T>
+vector<T> inverse(const vector<T>& a) {
+  assert(!a.empty());
+  int n = (int) a.size();
+  vector<T> b = {1 / a[0]};
+  while ((int) b.size() < n) {
+    vector<T> a_cut(a.begin(), a.begin() + min(a.size(), b.size() << 1));
+    vector<T> x = b * b * a_cut;
+    b.resize(b.size() << 1);
+    for (int i = (int) b.size() >> 1; i < (int) min(x.size(), b.size()); i++) {
+      b[i] = -x[i];
+    }
+  }
+  b.resize(n);
+  return b;
+}
+
+template <typename T>
+vector<T>& operator/=(vector<T>& a, const vector<T>& b) {
+  int n = (int) a.size();
+  int m = (int) b.size();
+  if (n < m) {
+    a.clear();
+  } else {
+    vector<T> d = b;
+    reverse(a.begin(), a.end());
+    reverse(d.begin(), d.end());
+    d.resize(n - m + 1);
+    a *= inverse(d);
+    a.erase(a.begin() + n - m + 1, a.end());
+    reverse(a.begin(), a.end());
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator/(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c /= b;
+}
+
+template <typename T>
+vector<T>& operator%=(vector<T>& a, const vector<T>& b) {
+  int n = (int) a.size();
+  int m = (int) b.size();
+  if (n >= m) {
+    for (int i = n - 1; i >= m - 1; i--) {
+      Mint c = a.back() / b.back();
+      for (int j = 0; j < m; j++) {
+        a[i - (m - 1) + j] -= b[j] * c;
+      }
+      a.pop_back();
+    }
+/*    vector<T> c = (a / b) * b;
+    a.resize(m - 1);
+    for (int i = 0; i < m - 1; i++) {
+      a[i] -= c[i];
+    }*/
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator%(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c %= b;
+}
+
+template <typename T, typename U>
+vector<T> power(const vector<T>& a, const U& b, const vector<T>& c) {
+  assert(b >= 0);
+  vector<U> binary;
+  U bb = b;
+  while (bb > 0) {
+    binary.push_back(bb & 1);
+    bb >>= 1;
+  }
+  vector<T> res = vector<T>{1} % c;
+  for (int j = (int) binary.size() - 1; j >= 0; j--) {
+    res = res * res % c;
+    if (binary[j] == 1) {
+      res = res * a % c;
+    }
+  }
+  return res;
+}
+${0}
+endsnippet
+
+snippet polynomial
+template <typename T>
+vector<T>& operator+=(vector<T>& a, const vector<T>& b) {
+  if (a.size() < b.size()) {
+    a.resize(b.size());
+  }
+  for (int i = 0; i < (int)b.size(); i++) {
+    a[i] += b[i];
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator+(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c += b;
+}
+
+template <typename T>
+vector<T>& operator-=(vector<T>& a, const vector<T>& b) {
+  if (a.size() < b.size()) {
+    a.resize(b.size());
+  }
+  for (int i = 0; i < (int)b.size(); i++) {
+    a[i] -= b[i];
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator-(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c -= b;
+}
+
+template <typename T>
+vector<T> operator-(const vector<T>& a) {
+  vector<T> c = a;
+  for (int i = 0; i < (int)c.size(); i++) {
+    c[i] = -c[i];
+  }
+  return c;
+}
+
+template <typename T>
+vector<T> operator*(const vector<T>& a, const vector<T>& b) {
+  if (a.empty() || b.empty()) {
+    return {};
+  }
+  vector<T> c(a.size() + b.size() - 1, 0);
+  for (int i = 0; i < (int)a.size(); i++) {
+    for (int j = 0; j < (int)b.size(); j++) {
+      c[i + j] += a[i] * b[j];
+    }
+  }
+  return c;
+}
+
+template <typename T>
+vector<T>& operator*=(vector<T>& a, const vector<T>& b) {
+  return a = a * b;
+}
+
+template <typename T>
+vector<T> inverse(const vector<T>& a) {
+  assert(!a.empty());
+  int n = (int)a.size();
+  vector<T> b = {1 / a[0]};
+  while ((int)b.size() < n) {
+    vector<T> a_cut(a.begin(), a.begin() + min(a.size(), b.size() << 1));
+    vector<T> x = b * b * a_cut;
+    b.resize(b.size() << 1);
+    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
+      b[i] = -x[i];
+    }
+  }
+  b.resize(n);
+  return b;
+}
+
+template <typename T>
+vector<T>& operator/=(vector<T>& a, const vector<T>& b) {
+  int n = (int)a.size();
+  int m = (int)b.size();
+  if (n < m) {
+    a.clear();
+  } else {
+    vector<T> d = b;
+    reverse(a.begin(), a.end());
+    reverse(d.begin(), d.end());
+    d.resize(n - m + 1);
+    a *= inverse(d);
+    a.erase(a.begin() + n - m + 1, a.end());
+    reverse(a.begin(), a.end());
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator/(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c /= b;
+}
+
+template <typename T>
+vector<T>& operator%=(vector<T>& a, const vector<T>& b) {
+  int n = (int)a.size();
+  int m = (int)b.size();
+  if (n >= m) {
+    vector<T> c = (a / b) * b;
+    a.resize(m - 1);
+    for (int i = 0; i < m - 1; i++) {
+      a[i] -= c[i];
+    }
+  }
+  return a;
+}
+
+template <typename T>
+vector<T> operator%(const vector<T>& a, const vector<T>& b) {
+  vector<T> c = a;
+  return c %= b;
+}
+
+template <typename T, typename U>
+vector<T> power(const vector<T>& a, const U& b, const vector<T>& c) {
+  assert(b >= 0);
+  vector<U> binary;
+  U bb = b;
+  while (bb > 0) {
+    binary.push_back(bb & 1);
+    bb >>= 1;
+  }
+  vector<T> res = vector<T>{1} % c;
+  for (int j = (int)binary.size() - 1; j >= 0; j--) {
+    res = res * res % c;
+    if (binary[j] == 1) {
+      res = res * a % c;
+    }
+  }
+  return res;
+}
+
+template <typename T>
+vector<T> derivative(const vector<T>& a) {
+  vector<T> c = a;
+  for (int i = 0; i < (int)c.size(); i++) {
+    c[i] *= i;
+  }
+  if (!c.empty()) {
+    c.erase(c.begin());
+  }
+  return c;
+}
+
+template <typename T>
+vector<T> primitive(const vector<T>& a) {
+  vector<T> c = a;
+  c.insert(c.begin(), 0);
+  for (int i = 1; i < (int)c.size(); i++) {
+    c[i] /= i;
+  }
+  return c;
+}
+
+template <typename T>
+vector<T> logarithm(const vector<T>& a) {
+  assert(!a.empty() && a[0] == 1);
+  vector<T> u = primitive(derivative(a) * inverse(a));
+  u.resize(a.size());
+  return u;
+}
+
+template <typename T>
+vector<T> exponent(const vector<T>& a) {
+  assert(!a.empty() && a[0] == 0);
+  int n = (int)a.size();
+  vector<T> b = {1};
+  while ((int)b.size() < n) {
+    vector<T> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
+    x[0] += 1;
+    vector<T> old_b = b;
+    b.resize(b.size() << 1);
+    x -= logarithm(b);
+    x *= old_b;
+    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
+      b[i] = x[i];
+    }
+  }
+  b.resize(n);
+  return b;
+}
+
+template <typename T>
+vector<T> sqrt(const vector<T>& a) {
+  assert(!a.empty() && a[0] == 1);
+  int n = (int)a.size();
+  vector<T> b = {1};
+  while ((int)b.size() < n) {
+    vector<T> x(a.begin(), a.begin() + min(a.size(), b.size() << 1));
+    b.resize(b.size() << 1);
+    x *= inverse(b);
+    T inv2 = 1 / static_cast<T>(2);
+    for (int i = (int)b.size() >> 1; i < (int)min(x.size(), b.size()); i++) {
+      b[i] = x[i] * inv2;
+    }
+  }
+  b.resize(n);
+  return b;
+}
+
+template <typename T>
+vector<T> multiply(const vector<vector<T>>& a) {
+  if (a.empty()) {
+    return {0};
+  }
+  function<vector<T>(int, int)> mult = [&](int l, int r) {
+    if (l == r) {
+      return a[l];
+    }
+    int y = (l + r) >> 1;
+    return mult(l, y) * mult(y + 1, r);
+  };
+  return mult(0, (int)a.size() - 1);
+}
+
+template <typename T>
+T evaluate(const vector<T>& a, const T& x) {
+  T res = 0;
+  for (int i = (int)a.size() - 1; i >= 0; i--) {
+    res = res * x + a[i];
+  }
+  return res;
+}
+
+template <typename T>
+vector<T> evaluate(const vector<T>& a, const vector<T>& x) {
+  if (x.empty()) {
+    return {};
+  }
+  if (a.empty()) {
+    return vector<T>(x.size(), 0);
+  }
+  int n = (int)x.size();
+  vector<vector<T>> st((n << 1) - 1);
+  function<void(int, int, int)> build = [&](int v, int l, int r) {
+    if (l == r) {
+      st[v] = vector<T>{-x[l], 1};
     } else {
-      bool is_negative = false;
-      if (n < 0) {
-        is_negative = true;
-        n = -n;
-      }
-      while (n > 0) {
-        *--p = (char) ('0' + n % 10);
-        n /= 10;
-      }
-      if (is_negative) {
-        *--p = '-';
-      }
+      int y = (l + r) >> 1;
+      int z = v + ((y - l + 1) << 1);
+      build(v + 1, l, y);
+      build(z, y + 1, r);
+      st[v] = st[v + 1] * st[z];
     }
-    return p;
-  }
-
-  template <typename T>
-  inline typename enable_if<is_integral<T>::value, char*>::type stringify(T n) {
-    return integer_to_string(n);
-  }
-
-  #if !defined(_WIN32) || defined(_WIN64)
-  inline char* stringify(__int128 n) {
-    return integer_to_string(n);
-  }
-  #endif
-
-  template <typename T>
-  inline typename enable_if<is_floating_point<T>::value, char*>::type stringify(T n) {
-    sprintf(tmp, "%.17f", n);
-    return tmp;
-  }
-
-  template <typename T>
-  inline FastOutput& operator<<(const T& n) {
-    auto p = stringify(n);
-    for (; *p != 0; p++) {
-      put_char(*p);
+  };
+  build(0, 0, n - 1);
+  vector<T> res(n);
+  function<void(int, int, int, vector<T>)> eval = [&](int v, int l, int r,
+                                                      vector<T> f) {
+    f %= st[v];
+    if ((int)f.size() < 150) {
+      for (int i = l; i <= r; i++) {
+        res[i] = evaluate(f, x[i]);
+      }
+      return;
     }
-    return *this;
+    if (l == r) {
+      res[l] = f[0];
+    } else {
+      int y = (l + r) >> 1;
+      int z = v + ((y - l + 1) << 1);
+      eval(v + 1, l, y, f);
+      eval(z, y + 1, r, f);
+    }
+  };
+  eval(0, 0, n - 1, a);
+  return res;
+}
+
+template <typename T>
+vector<T> interpolate(const vector<T>& x, const vector<T>& y) {
+  if (x.empty()) {
+    return {};
   }
-} fast_output;
+  assert(x.size() == y.size());
+  int n = (int)x.size();
+  vector<vector<T>> st((n << 1) - 1);
+  function<void(int, int, int)> build = [&](int v, int l, int r) {
+    if (l == r) {
+      st[v] = vector<T>{-x[l], 1};
+    } else {
+      int w = (l + r) >> 1;
+      int z = v + ((w - l + 1) << 1);
+      build(v + 1, l, w);
+      build(z, w + 1, r);
+      st[v] = st[v + 1] * st[z];
+    }
+  };
+  build(0, 0, n - 1);
+  vector<T> m = st[0];
+  vector<T> dm = derivative(m);
+  vector<T> val(n);
+  function<void(int, int, int, vector<T>)> eval = [&](int v, int l, int r,
+                                                      vector<T> f) {
+    f %= st[v];
+    if ((int)f.size() < 150) {
+      for (int i = l; i <= r; i++) {
+        val[i] = evaluate(f, x[i]);
+      }
+      return;
+    }
+    if (l == r) {
+      val[l] = f[0];
+    } else {
+      int w = (l + r) >> 1;
+      int z = v + ((w - l + 1) << 1);
+      eval(v + 1, l, w, f);
+      eval(z, w + 1, r, f);
+    }
+  };
+  eval(0, 0, n - 1, dm);
+  for (int i = 0; i < n; i++) {
+    val[i] = y[i] / val[i];
+  }
+  function<vector<T>(int, int, int)> calc = [&](int v, int l, int r) {
+    if (l == r) {
+      return vector<T>{val[l]};
+    }
+    int w = (l + r) >> 1;
+    int z = v + ((w - l + 1) << 1);
+    return calc(v + 1, l, w) * st[z] + calc(z, w + 1, r) * st[v + 1];
+  };
+  return calc(0, 0, n - 1);
+}
+// f[i] = 1^i + 2^i + ... + up^i
 
-#define cout fast_output
+template <typename T>
+vector<T> faulhaber(const T& up, int n) {
+  vector<T> ex(n + 1);
+  T e = 1;
+  for (int i = 0; i <= n; i++) {
+    ex[i] = e;
+    e /= i + 1;
+  }
+  vector<T> den = ex;
+  den.erase(den.begin());
+  for (auto& d : den) {
+    d = -d;
+  }
+  vector<T> num(n);
+  T p = 1;
+  for (int i = 0; i < n; i++) {
+    p *= up + 1;
+    num[i] = ex[i + 1] * (1 - p);
+  }
+  vector<T> res = num * inverse(den);
+  res.resize(n);
+  T f = 1;
+  for (int i = 0; i < n; i++) {
+    res[i] *= f;
+    f *= i + 1;
+  }
+  return res;
+}
+// (x + 1) * (x + 2) * ... * (x + n)
+// (can be optimized with precomputed inverses)
 
+template <typename T>
+vector<T> sequence(int n) {
+  if (n == 0) {
+    return {1};
+  }
+  if (n % 2 == 1) {
+    return sequence<T>(n - 1) * vector<T>{n, 1};
+  }
+  vector<T> c = sequence<T>(n / 2);
+  vector<T> a = c;
+  reverse(a.begin(), a.end());
+  T f = 1;
+  for (int i = n / 2 - 1; i >= 0; i--) {
+    f *= n / 2 - i;
+    a[i] *= f;
+  }
+  vector<T> b(n / 2 + 1);
+  b[0] = 1;
+  for (int i = 1; i <= n / 2; i++) {
+    b[i] = b[i - 1] * (n / 2) / i;
+  }
+  vector<T> h = a * b;
+  h.resize(n / 2 + 1);
+  reverse(h.begin(), h.end());
+  f = 1;
+  for (int i = 1; i <= n / 2; i++) {
+    f /= i;
+    h[i] *= f;
+  }
+  vector<T> res = c * h;
+  return res;
+}
+
+template <typename T>
+class OnlineProduct {
+ public:
+  const vector<T> a;
+  vector<T> b;
+  vector<T> c;
+
+  OnlineProduct(const vector<T>& a_) : a(a_) {}
+
+  T add(const T& val) {
+    int i = (int)b.size();
+    b.push_back(val);
+    if ((int)c.size() <= i) {
+      c.resize(i + 1);
+    }
+    c[i] += a[0] * b[i];
+    int z = 1;
+    while ((i & (z - 1)) == z - 1 && (int)a.size() > z) {
+      vector<T> a_mul(a.begin() + z, a.begin() + min(z << 1, (int)a.size()));
+      vector<T> b_mul(b.end() - z, b.end());
+      vector<T> c_mul = a_mul * b_mul;
+      if ((int)c.size() <= i + (int)c_mul.size()) {
+        c.resize(i + c_mul.size() + 1);
+      }
+      for (int j = 0; j < (int)c_mul.size(); j++) {
+        c[i + 1 + j] += c_mul[j];
+      }
+      z <<= 1;
+    }
+    return c[i];
+  }
+};
 ${0}
 endsnippet
+
+snippet bm
+template <typename T>
+vector<T> BM(vector<T> a) {
+  vector<T> p = {1};
+  vector<T> q = {1};
+  int l = 0;
+  for (int r = 1; r <= (int) a.size(); r++) {
+    T delta = 0;
+    for (int j = 0; j <= l; j++) {
+      delta += a[r - 1 - j] * p[j];
+    }
+    q.insert(q.begin(), 0);
+    if (delta != 0) {
+      vector<T> t = p;
+      if (q.size() > t.size()) {
+        t.resize(q.size());
+      }
+      for (int i = 0; i < (int) q.size(); i++) {
+        t[i] -= delta * q[i];
+      }
+      if (2 * l <= r - 1) {
+        q = p;
+        T od = 1 / delta;
+        for (T& x : q) {
+          x *= od;
+        }
+        l = r - l;
+      }
+      swap(p, t);
+    }
+  }
+  assert((int) p.size() == l + 1);
+//  assert(l * 2 + 30 < (int) a.size());
+  reverse(p.begin(), p.end());
+  return p;
+}
+${0}
+endsnippet
+
+snippet manacher
+template <typename T>
+vector<int> manacher(int n, const T &s) {
+  if (n == 0) {
+    return vector<int>();
+  }
+  vector<int> res(2 * n - 1, 0);
+  int l = -1, r = -1;
+  for (int z = 0; z < 2 * n - 1; z++) {
+    int i = (z + 1) >> 1;
+    int j = z >> 1;
+    int p = (i >= r ? 0 : min(r - i, res[2 * (l + r) - z]));
+    while (j + p + 1 < n && i - p - 1 >= 0) {
+      if (!(s[j + p + 1] == s[i - p - 1])) {
+        break;
+      }
+      p++;
+    }
+    if (j + p > r) {
+      l = i - p;
+      r = j + p;
+    }
+    res[z] = p;
+  }
+  return res;
+  // res[2 * i] = odd radius in position i
+  // res[2 * i + 1] = even radius between positions i and i + 1
+  // s = "abaa" -> res = {0, 0, 1, 0, 0, 1, 0}
+}
+
+template <typename T>
+vector<int> manacher(const T &s) {
+  return manacher((int) s.size(), s);
+}
+${0}
+endsnippet
+
