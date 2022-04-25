@@ -4,7 +4,7 @@ readonly DIST="./cpp.snippets"
 
 : > $DIST
 
-readarray -t filenames< <(find . -name '*.cpp')
+readarray -t filenames< <(find ./data ./flow ./misc ./string ./graph ./numeric -name '*.cpp')
 
 function gen_snippet() {
   filename=$1
