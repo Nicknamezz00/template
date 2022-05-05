@@ -5,7 +5,7 @@ vector<int> find_mst(const undigraph<T> &g, T &ans) {
   sort(order.begin(), order.end(), [&g](int a, int b) {
     return g.edges[a].cost < g.edges[b].cost;
   });
-  dsu d(g.n);
+  DSU d(g.n);
   vector<int> ans_list;
   ans = 0;
   for (int id : order) {
@@ -13,7 +13,7 @@ vector<int> find_mst(const undigraph<T> &g, T &ans) {
       continue;
     }
     auto &e = g.edges[id];
-    if (d.get(e.from) != d.get(e.to)) {
+    if (d.find(e.from) != d.find(e.to)) {
       d.unite(e.from, e.to);
       ans_list.push_back(id);
       ans += e.cost;
