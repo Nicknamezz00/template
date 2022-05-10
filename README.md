@@ -1,4 +1,4 @@
-## 算法模板
+## Algorithm Templates
 
 #### Data structures
 * DSU
