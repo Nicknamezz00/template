@@ -1,0 +1,9 @@
+*.exe
+.vscode/
+.idea/
+
+*.hpp
+*.c
+*.sh
+XCPC-Template/
+.DS_Store
