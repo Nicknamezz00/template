@@ -69,7 +69,7 @@ struct LazySegmentTree {
   }
 
   void modify(int p, const Info &v) {
-      modify(1, 0, n, p, v);
+    modify(1, 0, n, p, v);
   }
 
   Info query(int p, int l, int r, int x, int y) {
