@@ -8,9 +8,6 @@ vector<int> dominators(digraph<T> &g, int root) {
     pos[v] = (int) order.size();
     order.push_back(v);
     for (int id : g.g[v]) {
-      if (g.ignore != nullptr && g.ignore(id)) {
-        continue;
-      }
       auto &e = g.edges[id];
       int u = e.to;
       if (pos[u] == -1) {
@@ -44,9 +41,6 @@ vector<int> dominators(digraph<T> &g, int root) {
   for (int it = (int) order.size() - 1; it >= 0; it--) {
     int w = order[it];
     for (int id : g_rev.g[w]) {
-      if (g_rev.ignore != nullptr && g_rev.ignore(id)) {
-        continue;
-      }
       auto &e = g_rev.edges[id];
       int u = e.to;
       sdom[w] = min(sdom[w], sdom[find_best(u)]);
