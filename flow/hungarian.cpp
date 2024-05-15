@@ -1,3 +1,5 @@
+// Minimum assignment
+// https://codeforces.com/gym/105161/submission/261043769
 template<typename T>
 class hungarian {
   public:
